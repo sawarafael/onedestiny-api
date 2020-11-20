@@ -147,7 +147,7 @@ module.exports = {
 
             }).catch((err) => {
                 res.status(404);
-                res.json({ err: "Erro ao entregar os dados." })
+                res.json({ err: "Erro do Servidor ao Entregar os Dados." })
             })
 
             
@@ -210,7 +210,7 @@ module.exports = {
 
             }).catch((err) => {
                 res.status(400);
-                res.json({ err: "Falha em encontrar o usuário." })
+                res.json({ err: "Falha em encontrar o Usuário." })
             })
 
         } else {
@@ -341,7 +341,7 @@ module.exports = {
 
             Userfriends.findOne({
                 where: {
-                    idUser: req.body.id2,
+                    idUser: uservi,
                 }
             }).then((userf) => {
 

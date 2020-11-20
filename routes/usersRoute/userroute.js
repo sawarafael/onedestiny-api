@@ -15,4 +15,7 @@ Userroute.post('/normal/friend/request', veri.freeAuth, user.friendListRequest);
 Userroute.put('/normal/friend/update', veri.freeAuth, user.friendListUpdate);
 Userroute.get('/normal/friend/view', veri.freeAuth, user.friendListView);
 
+
+Userroute.get('/adm/signin');
+
 module.exports = Userroute;
