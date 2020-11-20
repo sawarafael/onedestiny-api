@@ -15,13 +15,17 @@ Rotas implementadas:
 Antes de inicializar esta API na sua máquina, certifique-se de criar um DATABASE correspondente, em seguida, instale todos os módulos NodeJS desta API e em seguida crie um arquivo .env onde nele deverá botar as seguintes variáveis:
 
 DB_NAME=~~Nome do Banco que você criou~~
+
 DB_HOST=~~localhost~~
+
 DB_USER=~~root~~
+
 DB_PASS=~~Senha de acesso para o banco que você criou~~
 
 API_PORT=3000
 
 JWT_SECRET_TOKEN_USER=~~é uma senha especial, usando essa api para teste, você pode inserir quaisquer senha legítima aqui apenas para testar se o token vai funcionar em sua sessão autenticada.~~
+
 
 
 Feito isto, utilize os comandos para as seguintes inicializações: 
