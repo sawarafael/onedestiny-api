@@ -6,10 +6,10 @@ API destinado para uso do aplicativo *ONE DESTINY*, este Readme será destinado 
 
 Rotas implementadas:
 
-1. - [x] Usuários Normal - Free e Premium
-2. - [] Usuários Admin
-3. - [] Noticias
-4. - [] Mesas
+1. [x] Usuários Normal - Free e Premium
+2. [] Usuários Admin
+3. [] Noticias
+4. [] Mesas
 
 **ATENÇÃO** 
 Antes de inicializar esta API na sua máquina, certifique-se de criar um DATABASE correspondente, em seguida, instale todos os módulos NodeJS desta API e em seguida crie um arquivo .env onde nele deverá botar as seguintes variáveis:
@@ -43,7 +43,9 @@ Caso ocorra algum erro, reportar em "Issues" deste repositório.
 **Requisições:**  
 
 *username:*
+
 *email:*
+
 *password:*
 
 **Respostas:** 
@@ -53,6 +55,7 @@ Caso ocorra algum erro, reportar em "Issues" deste repositório.
 **Erros:**
 
 *Este Email ou Usuário já está cadastrado no Sistema!* - (400)
+
 --> Já existe o usuário ou email dentro do Banco de Dados.
 
 --------------------------------------------------------------
@@ -64,6 +67,7 @@ Caso ocorra algum erro, reportar em "Issues" deste repositório.
 **Requisições:**
 
 *username:*
+
 *password:*
 
 **Repostas:**
@@ -73,12 +77,15 @@ Caso ocorra algum erro, reportar em "Issues" deste repositório.
 **Erros:**
 
 *Usuário não encontrado.* - (404)
+
 --> O usuário não se encontra no Banco de Dados do Sistema.
 
 *Falha Interna* - (400)
+
 --> O Servidor não conseguiu gerar o token.
 
 *Senha inválida* - (404)
+
 --> A senha que foi passada não é igual a senha registrada no Banco de Dados.
 
 --------------------------------------------------------------
@@ -98,6 +105,7 @@ Caso ocorra algum erro, reportar em "Issues" deste repositório.
 **Erros:**
 
 *Erro do Servidor ao Entregar os Dados* - (404)
+
 --> Sistema não conseguiu encontrar o usuário e seus dados.
 
 --------------------------------------------------------------
@@ -109,7 +117,9 @@ Caso ocorra algum erro, reportar em "Issues" deste repositório.
 **Requisições:**
 
 *id*: --> id do usuário que deseja alterar seus dados
+
 *avatar*: --> string de uma url de um avatar
+
 *bio*: --> descrição do usuário
 
 **Respostas:**
@@ -129,6 +139,7 @@ Caso ocorra algum erro, reportar em "Issues" deste repositório.
 **Requisições:**
 
 *up*: --> requisição de que o usuário upou.
+
 *id*: --> o usuário que upou.
 
 **Respostas:**
@@ -150,23 +161,33 @@ Não existe nenhuma mensagem de resposta. No entanto, o código de sucesso, 200,
 Ações: 
 
 Usuário de ID 2 enviou um pedido de amizade para o Usuário de ID 43;
+
 Usuário de ID 6 mantém a amizade do Usuário de ID 196;
+
 Usuário de ID 1 recusou o pedido de amizade de Usuário de ID 59;
+
 Usuário de ID 7823 bloqueou a amizade de Usuário de ID 9838;
 
 Status: 
 
 0 - Pendente
+
 1 - Ativo
+
 2 - Recusado
+
 3 - Bloqueado
+
 4 - Removido
 
 **Requisições:**
 
 *id1*: --> usuário requerente.
+
 *id2*: --> usuário requerido.
+
 *usernamer*: --> username do usuário requerido.
+
 *action*: --> ação de pendência. 
 
 **Respostas:**
@@ -188,20 +209,27 @@ Status:
 **Requisições**:
 
 *resp*: --> resposta de atualização realizada.
+
 *id1*: --> usuário requerente.
+
 *id2*: --> usuário requerido.
+
 *action*: --> ação realizada nesta atualização.
 
 **Respostas**:
 
 Caso resp = 1: *Requisição confirmarda!* - (200)
+
 Caso resp = 2: *Requisição confirmarda!* - (200)
+
 Caso resp = 3: *Requisição confirmarda!* - (200)
+
 Caso resp = 4: *Requisição confirmarda!* - (200)
 
 **Erros**:
 
 *Status não identificado!* - (404)
+
 --> Caso a requisição seja um valor diferente de 1, 2, 3 ou 4, ele retornará este erro.
 
 --------------------------------------------------------------
@@ -213,6 +241,7 @@ Caso resp = 4: *Requisição confirmarda!* - (200)
 **Requisições**:
 
 *id1*: 
+
 *id2*:
 
 **Respostas**: 
@@ -222,6 +251,7 @@ Lista de amigos do Usuário. - (200)
 **Erros**:
 
 *Usuário ainda não tem amigos.* - (400)
+
 --> Caso o usuário ainda não tenha nenhum vinculo associado dentro do banco de dados e faça essa requisição, esse erro retornará.
 
 *Erro ao tentar encontrar o ID do Usuário.* - (404)
