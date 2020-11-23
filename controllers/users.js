@@ -24,45 +24,42 @@ module.exports = {
             if(user) {
                 res.status(400);
                 res.json({ err: "Este Email ou Usuário já está Cadastrado no Sistema!"});
-                User.destroy({
-                    where: {
-                        email: req.body.email,
-                        username: req.body.username
-                    }
-                })
+                
+            } else {
+                
+     
+        bcrypt.hash(req.body.password, salt, function (err, hash) {
+     
+            User.create({
+                username: req.body.username,
+                email: req.body.email,
+                password: hash
+            }).then(user => {
+                res.status(200);
+                res.json({ msg: "Usuário cadastrado!"});
+
+               UserData.create({
+                   avatar: null,
+                   bio: null,
+                   level:  1,
+               })
+               Userfavorite.create({
+                   favoriteTags: null,
+                   favoriteRooms: null
+               })
+               Userrole.create({
+                   free: 1,
+                   premium: 0,
+                   adm: 0,
+                   mod: 0
+               })
+            })
+       })
+       
             }
         })
      
      
-     
-        bcrypt.hash(req.body.password, salt, function (err, hash) {
-     
-             User.create({
-                 username: req.body.username,
-                 email: req.body.email,
-                 password: hash
-             }).then(user => {
-                 res.status(200);
-                 res.json({ msg: "Usuário cadastrado!"});
-
-                UserData.create({
-                    avatar: null,
-                    bio: null,
-                    level:  1,
-                })
-                Userfavorite.create({
-                    favoriteTags: null,
-                    favoriteRooms: null
-                })
-                Userrole.create({
-                    free: 1,
-                    premium: 0,
-                    adm: 0,
-                    mod: 0
-                })
-             })
-        })
-        
 
 
 
@@ -86,17 +83,74 @@ module.exports = {
                 } else {
                     bcrypt.compare(req.body.password, ps, function(err, result) {
                         if (result == true) {   
-                    
+
+
+                                User.findOne({
+                                    where: {
+                                        username: us
+                                    }, 
+                                    attributes: [ 
+                                        'id', 'username'
+                                     ]
+                                }).then((useri) => {
+
+                                        Userrole.findOne({
+                                            where: {
+                                                id: useri.id
+                                            }, 
+                                            attributes: [
+                                                'free', 'premium', 'adm', 'mod'
+                                            ]
+                                        }).then((userro) => {
+
+                                            if(userro.free == true) {
+                                                res.status(200);
+                                                res.json({ static_token: process.env.TOKEN_USER })
+                                            } else if(userro.premium == true) {
+                                                res.status(200);
+                                                res.json({ static_token: process.env.TOKEN_PREMIUM })
+                                            } else if(userro.adm == true) {
+                                                JWT.sign({ id: userAuth.id, username: userAuth.username }, 
+                                                    process.env.JWT_SECRET_TOKEN_ADMIN, {expiresIn: '48h'}, (err, token) => {
+                                                    if(err){
+                                                        res.status(400);
+                                                        res.json({err: "Falha Interna"})
+                                                    }else {
+                                                        res.status(200);
+                                                        res.json({token: token})
+                                                    }
+                                                })
+                                            } else if(userro.mod == true) {
+                                                res.status(200);
+                                                res.json({ static_token: process.env.TOKEN_MOD })
+                                            } else {
+                                                res.status(401)
+                                                res.json({ err: "Usuário não possui cargo especificado!" })
+                                            }
+                                    })
+                                })
+
+
+
+
+
+
+
+
+
+                            /*
                             JWT.sign({ id: userAuth.id, username: userAuth.username }, 
-                            process.env.JWT_SECRET_TOKEN_USER, {expiresIn: '48h'}, (err, token) => {
-                            if(err){
-                                res.status(400);
-                                res.json({err: "Falha Interna"})
-                            }else {
-                                res.status(200);
-                                res.json({token: token})
-                            }
-                        })
+                                process.env.JWT_SECRET_TOKEN_ADMIN, {expiresIn: '48h'}, (err, token) => {
+                                if(err){
+                                    res.status(400);
+                                    res.json({err: "Falha Interna"})
+                                }else {
+                                    res.status(200);
+                                    res.json({token: token})
+                                }
+                            })
+                            */
+                           
 
                 //res.json({ sucess: "Autenticação confirmada." });
                     } else {

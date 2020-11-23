@@ -3,36 +3,52 @@ require('dotenv').config();
 
 module.exports = {
 
-    freeAuth(req, res, next) {
+    Auth(req, res, next) {
+        
+    const authToken = req.headers['authorization'];
 
-        const authFreeToken = req.headers['authorization'];
+    if(authToken != undefined) {
 
-        if (authFreeToken != undefined) {
-            
-            const bearer = authFreeToken.split(' ');
-            var token = bearer[1];
-
-            jwt.verify(token, process.env.JWT_SECRET_TOKEN_USER, (err, data) => {
-                if(err) {
-                    res.status(401);
-                    res.json({ err: "Token inválido." })
-                } else {
-                    next();
-                }
-            })
-
-
+        const bearer = authToken.split(' ');
+        var token = bearer[1];
+        
+    jwt.verify(token, process.env.JWT_SECRET_TOKEN_ADMIN, (err, data) => {
+        if(err) {
+            res.status(401);
+            res.json({ err: "User-Token inválido." })
         } else {
-            res.status(500);
-            res.json({ err: "Tempo de Resposta muito Alta, tente novamente." });
+            next();
         }
-
+    }) 
+    } else {
+        res.status(500);
+        res.json({ err: "Tempo esgotado. Tente novamente." });
+    }
     },
 
 
-    admAuth(req, res, next){
+    UserAuth(req, res, next) {
+
+        const userToken = req.headers['authorization'];
+
+        if(userToken != undefined) {
+
+            const bearer = userToken.split(' ');
+            var uToken = bearer[1];
+
+            if(uToken === process.env.TOKEN_USER) {
+                next();
+            } else {
+                res.status(401);
+                res.json({ err: "Token inválido!" })
+            }
+
+        } else {
+            res.status(500);
+            res.json({ err: "Tempo esgotado. Tente novamente."})
+        }
 
     }
 
-
 }
+
