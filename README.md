@@ -7,7 +7,7 @@ API destinado para uso do aplicativo *ONE DESTINY*, este Readme será destinado 
 Rotas implementadas:
 
 1. [x] Usuários Normal - Free e Premium
-2. [] Usuários Admin
+2. [x] Usuários Admin
 3. [] Noticias
 4. [] Mesas
 
