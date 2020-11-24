@@ -32,7 +32,7 @@ module.exports = {
             }
 
         }).catch((err) => {
-            console.log("deu erro na query" +err)
+            console.log("Falha em ")
         })
     },
 

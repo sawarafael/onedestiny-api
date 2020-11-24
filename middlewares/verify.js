@@ -48,7 +48,55 @@ module.exports = {
             res.json({ err: "Tempo esgotado. Tente novamente."})
         }
 
-    }
+    },
 
+
+    PremiumAuth(req, res, next){
+
+        const userToken = req.headers['authorization'];
+
+        if(userToken != undefined) {
+
+            const bearer = userToken.split(' ');
+            var uToken = bearer[1];
+
+            if(uToken === process.env.TOKEN_PREMIUM) {
+                next();
+            } else {
+                res.status(401);
+                res.json({ err: "Token inválido!" })
+            }
+
+        } else {
+            res.status(500);
+            res.json({ err: "Tempo esgotado. Tente novamente."})
+        }
+
+    },
+
+
+    ModAuth(req, res, next){
+
+        const userToken = req.headers['authorization'];
+
+        if(userToken != undefined) {
+
+            const bearer = userToken.split(' ');
+            var uToken = bearer[1];
+
+            if(uToken === process.env.TOKEN_MOD) {
+                next();
+            } else {
+                res.status(401);
+                res.json({ err: "Token inválido!" })
+            }
+
+        } else {
+            res.status(500);
+            res.json({ err: "Tempo esgotado. Tente novamente."})
+        }
+
+    }
+    
 }
 

@@ -4,8 +4,11 @@ const co        = require('colors');
 
 const conn      = require('./utils/dbConn');
 
-const userRouter  = require('./routes/usersRoute/userroute');
-const adminRouter = require('./routes/usersRoute/adminroute')
+const userRouter        = require('./routes/usersRoute/userroute');
+const premiumRouter     = require('./routes/usersRoute/premiumroute');
+const modRouter         = require('./routes/usersRoute/modroute');
+const adminRouter       = require('./routes/usersRoute/adminroute')
+const articlesRouter    = require('./routes/articlesRoute/articleroute');
 
 const app = express();
 require('dotenv').config();
@@ -14,7 +17,10 @@ app.use(bp.urlencoded({ extended: true }));
 app.use(bp.json());
 
 app.use('/users',  userRouter);
+app.use('/premium', premiumRouter);
+app.use('/mod', modRouter);
 app.use('/admin',  adminRouter);
+app.use('/articles', articlesRouter);
 
 app.listen(process.env.API_PORT, () => {
     console.log(co.yellow(`\n API rodando no endereço: ` + co.bold(`http://localhost:${process.env.API_PORT}`)

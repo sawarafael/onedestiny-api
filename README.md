@@ -1,6 +1,6 @@
 # API - One Destiny
 
-### 1.1.4v
+### 1.1.5v
 
 API destinado para uso do aplicativo *ONE DESTINY*, este Readme será destinado para especificar quais rotas estão sendo trabalhadas e como usa-las nos aplicativos Mobile e Desktop. 
 
@@ -8,8 +8,9 @@ Rotas implementadas:
 
 1. [x] Usuários Normal - Free e Premium
 2. [x] Usuários Admin
-3. [] Noticias
-4. [] Mesas
+3. [x] Usuários Mod
+4. [x] Noticias
+5. [] Mesas
 
 **ATENÇÃO** 
 Antes de inicializar esta API na sua máquina, certifique-se de criar um DATABASE correspondente, em seguida, instale todos os módulos NodeJS desta API e em seguida crie um arquivo .env onde nele deverá botar as seguintes variáveis:
