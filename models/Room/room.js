@@ -26,4 +26,5 @@ Room.associate = (models) => {
     Room.belongsTo(models.user, {foreignKey: 'id', as: 'roomid'})
 }
 
+
 module.exports = Room;

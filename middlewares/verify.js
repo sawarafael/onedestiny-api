@@ -14,8 +14,20 @@ module.exports = {
         
     jwt.verify(token, process.env.JWT_SECRET_TOKEN_ADMIN, (err, data) => {
         if(err) {
-            res.status(401);
-            res.json({ err: "User-Token inválido." })
+            if(token === process.env.TOKEN_USER) {
+                next();
+            } else {
+                if(token === process.env.TOKEN_PREMIUM) {
+                    next();
+                } else {
+                    if(token === process.env.TOKEN_MOD) {
+                        next();
+                    } else {
+                        res.status(401);
+                        res.json({ err: "Token inválido!" })
+                    }
+                }
+            }
         } else {
             next();
         }
@@ -26,7 +38,7 @@ module.exports = {
     }
     },
 
-
+/*
     UserAuth(req, res, next) {
 
         const userToken = req.headers['authorization'];
@@ -96,7 +108,9 @@ module.exports = {
             res.json({ err: "Tempo esgotado. Tente novamente."})
         }
 
-    }
+    },
     
+*/
+
 }
 

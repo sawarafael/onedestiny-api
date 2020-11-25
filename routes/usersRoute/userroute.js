@@ -7,13 +7,13 @@ const auth = require('./../../middlewares/verify');
 Userroute.post('/normal/signup', user.signupUser);
 Userroute.get('/normal/signin', user.signinUser);
 
-Userroute.get('/normal/dataview', auth.UserAuth, user.dataview);
-Userroute.put('/normal/datachange', auth.UserAuth, user.datachange);
-Userroute.put('/normal/lvlup', auth.UserAuth, user.levelup);
+Userroute.get('/normal/dataview', auth.Auth, user.dataview);
+Userroute.put('/normal/datachange', auth.Auth, user.datachange);
+Userroute.put('/normal/lvlup', auth.Auth, user.levelup);
 
-Userroute.post('/normal/friend/request', auth.UserAuth, user.friendListRequest);
-Userroute.put('/normal/friend/update', auth.UserAuth, user.friendListUpdate);
-Userroute.get('/normal/friend/view', auth.UserAuth, user.friendListView);
+Userroute.post('/normal/friend/request', auth.Auth, user.friendListRequest);
+Userroute.put('/normal/friend/update', auth.Auth, user.friendListUpdate);
+Userroute.get('/normal/friend/view', auth.Auth, user.friendListView);
 
 
 module.exports = Userroute;

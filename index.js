@@ -9,6 +9,7 @@ const premiumRouter     = require('./routes/usersRoute/premiumroute');
 const modRouter         = require('./routes/usersRoute/modroute');
 const adminRouter       = require('./routes/usersRoute/adminroute')
 const articlesRouter    = require('./routes/articlesRoute/articleroute');
+const roomRouter        = require('./routes/roomRoute/roomroute');
 
 const app = express();
 require('dotenv').config();
@@ -21,6 +22,7 @@ app.use('/premium', premiumRouter);
 app.use('/mod', modRouter);
 app.use('/admin',  adminRouter);
 app.use('/articles', articlesRouter);
+app.use('/room', roomRouter);
 
 app.listen(process.env.API_PORT, () => {
     console.log(co.yellow(`\n API rodando no endereço: ` + co.bold(`http://localhost:${process.env.API_PORT}`)
