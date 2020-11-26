@@ -20,7 +20,7 @@ module.exports = {
         }).then((room) => {
 
             if(room) {
-                res.status(400);
+                res.status(401);
                 res.json({ err: "Já existe uma mesa com este mesmo nome no sistema! "})
             } else {
                 User.findOne({
@@ -54,6 +54,9 @@ module.exports = {
                             amount: null
                         })
                     })
+                }).catch((err) => {
+                    res.status(400);
+                    res.json({ err: "Falha em encontrar o usuário." })
                 })
             }
         })
@@ -86,10 +89,13 @@ module.exports = {
             })
 
             res.status(200);
-            res.json({ msg: "Informações da Mesa atualizada!" })
+            res.json({ msg: "Informações da Mesa atualizadas!" })
 
 
 
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Não foi possível atualizar a mesa." })
         })  
 
     },
@@ -112,8 +118,13 @@ module.exports = {
 
                 res.status(200);
                 res.json({ room: room, room_data: roomd })
+            }).catch((err) => {
+                res.status(400);
+                res.json({ err: "Falha em encontrar os dados da mesa." })
             })
-
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Falha em encontrar a mesa." })
         })
 
     },

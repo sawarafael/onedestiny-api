@@ -1,6 +1,6 @@
 # API - One Destiny
 
-### 1.1.6v
+### 1.1.7v
 
 API destinado para uso do aplicativo *ONE DESTINY*, este Readme será destinado para especificar quais rotas estão sendo trabalhadas e como usa-las nos aplicativos Mobile e Desktop. 
 

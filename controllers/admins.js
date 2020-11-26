@@ -32,7 +32,7 @@ module.exports = {
             }
 
         }).catch((err) => {
-            console.log("Falha em ")
+            console.log("Falha em criar a Tag")
         })
     },
 
@@ -47,7 +47,7 @@ module.exports = {
             res.json({ data: tagerr })
         }).catch((err) => {
             res.status(400);
-            res.json({ err: err })
+            res.json({ err: "Não foi possível encontrar as Tags!" })
         })
     },
 
@@ -70,6 +70,9 @@ module.exports = {
 
             res.status(200);
             res.json({ msg: "Tag atualizada!"});
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Não foi possível localizar as Tags para atualizar!" })
         })
     },
 
@@ -124,7 +127,7 @@ module.exports = {
                 res.json({ msg: "Artigo criado com sucesso!" })
             }
         }).catch((err) => {
-            res.status(401);
+            res.status(400);
             res.json({ err: "Falha em criar um novo artigo." })
         })
 
@@ -141,7 +144,7 @@ module.exports = {
             res.json({ data: art })
         }).catch((err) => {
             res.status(400);
-            res.json({ err: err })
+            res.json({ err: "Não foi possível encontrar os Artigos!" })
         })
 
     },
@@ -165,6 +168,9 @@ module.exports = {
 
             res.status(200);
             res.json({ msg: "Artigo atualizado!" })
+        }).catch((err) => {
+            res.status(400);
+            res,json({ err: "Falha em encontrar o Artigo para atualiza-lo!" })
         })
 
     },
@@ -230,10 +236,13 @@ module.exports = {
 
                 } else {
 
-                    res.status(404);
+                    res.status(401);
                     res.json({ err: "Falha em tornar o usuário Moderador do Programa." })
 
                 }
+            }).catch((err) => {
+                res.status(400);
+                res.json({ err: "Falha em encontrar o usuário para torna-lo Moderador!" })
             })
         })
 
@@ -310,11 +319,14 @@ module.exports = {
 
             } else {
 
-                res.status(404);
-                res.json({ err: "Usuário não encontrado." })
+                res.status(401);
+                res.json({ err: "Não foi possível criar a reclamação ou ação." })
 
             }
 
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Falha em encontrar o usuário infrator." })
         })
 
     },
@@ -357,10 +369,13 @@ module.exports = {
             } else {
                 
                 res.status(404);
-                res.json({ err: "Falha em retirar a Moderação do Usuário!" })
+                res.json({ err: "Falha em retirar o caso do usuário infrator!" })
 
             }
 
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Falha em encontrar o usuário infrator para retira-lo de seu caso." })
         })
 
 
