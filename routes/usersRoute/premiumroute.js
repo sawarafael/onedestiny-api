@@ -12,6 +12,6 @@ PremiumRouter.post('/normal/friend/request', premiumAuth.Auth, user.friendListRe
 PremiumRouter.put('/normal/friend/update', premiumAuth.Auth, user.friendListUpdate);
 PremiumRouter.get('/normal/friend/view', premiumAuth.Auth, user.friendListView);
 
-Userroute.put('/normal/favorite/add', auth.Auth, user.UserFavoriteAddFavorites);
+PremiumRouter.put('/normal/favorite/add', premiumAuth.Auth, user.UserFavoriteAddFavorites);
 
 module.exports = PremiumRouter;

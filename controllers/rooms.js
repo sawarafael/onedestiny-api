@@ -169,6 +169,9 @@ module.exports = {
                 res.status(400);
                 res.json({ err: "Erro em adicionar mais uma ficha para o Mestre - NPC" })
             })  
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Erro em encontrar o usuário na Bancada de Ficha." })
         })       
 
     },
@@ -191,7 +194,7 @@ module.exports = {
             }).then((room) => {
 
                 if(room){
-                    res.status(400);
+                    res.status(401);
                     res.json({ err: "Este usuário já tem uma bancada de fichas nessa mesa" })
                 } else {
                     RoomPlugin.create({
@@ -210,6 +213,9 @@ module.exports = {
                         res.json({ msg: "Ficha para Player criada!" })
                     })
                 }
+            }).catch((err) => {
+                res.status(400);
+                res.json({ err: "Erro em encontrar a Mesa." })
             })
 
         })
@@ -228,13 +234,13 @@ module.exports = {
             RoomPluginData.findAll({                
                 attributes: [ 'idRoom', 'title', 'content' ]
             }).then((roompd) => {
-
-
-
                 res.status(200);
                 res.json({ plugin_major: roomp, plugin_content: roompd })
             })
 
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Não foi possível encontrar a mesa." })
         })
 
     },
@@ -261,8 +267,8 @@ module.exports = {
 
                 
                     if(roomd.idOwner == rest.idMaster) {
-                        res.status(404);
-                        res.json({ err: "Não é jogador da sala!" })
+                        res.status(401);
+                        res.json({ err: "Não é jogador desta sala de RPG!" })
                     } else {
                         RoomPlugin.update({
                             status: 1
@@ -333,8 +339,8 @@ module.exports = {
                         res.status(200);
                         res.json({ msg: "Ficha atualizada." })
                     } else {
-                        res.status(404);
-                        res.json({ err: "Não é mestre da sala!" })
+                        res.status(401);
+                        res.json({ err: "Não é o mestre desta sala de RPG!" })
                     }
                 }).catch((err) => {
                     res.status(400);
@@ -388,6 +394,9 @@ module.exports = {
 
             res.status(200);
             res,json({ msg: "Ficha destruída!" })
+        }).then((err) => {
+            res.status(400);
+            res.json({ err: "Erro ao Encontrar o usuário." })
         })
 
 
@@ -457,7 +466,6 @@ module.exports = {
                             idMesa: roomd.idMesa
                         }
                     })
-
                     res.status(200);
                     res.json({ msg: "Jogador adicionado!" })
                 } else {
