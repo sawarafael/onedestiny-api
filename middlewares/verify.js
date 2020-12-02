@@ -10,107 +10,36 @@ module.exports = {
     if(authToken != undefined) {
 
         const bearer = authToken.split(' ');
-        var token = bearer[1];
-        
-    jwt.verify(token, process.env.JWT_SECRET_TOKEN_ADMIN, (err, data) => {
-        if(err) {
-            if(token === process.env.TOKEN_USER) {
-                next();
-            } else {
-                if(token === process.env.TOKEN_PREMIUM) {
-                    next();
-                } else {
-                    if(token === process.env.TOKEN_MOD) {
-                        next();
+        var token = bearer[1];  
+
+        jwt.verify(token, process.env.JWT_SECRET_TOKEN_ADMIN, (err, data) => {
+            if(err) {
+                jwt.verify(token, process.env.JWT_SECRET_TOKEN_USER, (err, data) => {
+                    if(err) {
+                        jwt.verify(token, process.env.JWT_SECRET_TOKEN_PREMIUM, (err, data) => {
+                            if(err) {
+                                jwt.verify(token, process.env.JWT_SECRET_TOKEN_MOD, (err, data) => {
+                                    if(err) {
+                                        console.log(err)
+                                    } else {
+                                        next();
+                                    }
+                                })
+                            } else {
+                                next();
+                            }
+                        })
                     } else {
-                        res.status(401);
-                        res.json({ err: "Token inválido!" })
+                        next();
                     }
-                }
+                })
+            } else {
+                next();
             }
-        } else {
-            next();
-        }
-    }) 
+        })
     } else {
         res.status(500);
-        res.json({ err: "Tempo esgotado. Tente novamente." });
+        res.json({ err: "Token inválido." })
     }
-    },
-
-/*
-    UserAuth(req, res, next) {
-
-        const userToken = req.headers['authorization'];
-
-        if(userToken != undefined) {
-
-            const bearer = userToken.split(' ');
-            var uToken = bearer[1];
-
-            if(uToken === process.env.TOKEN_USER) {
-                next();
-            } else {
-                res.status(401);
-                res.json({ err: "Token inválido!" })
-            }
-
-        } else {
-            res.status(500);
-            res.json({ err: "Tempo esgotado. Tente novamente."})
-        }
-
-    },
-
-
-    PremiumAuth(req, res, next){
-
-        const userToken = req.headers['authorization'];
-
-        if(userToken != undefined) {
-
-            const bearer = userToken.split(' ');
-            var uToken = bearer[1];
-
-            if(uToken === process.env.TOKEN_PREMIUM) {
-                next();
-            } else {
-                res.status(401);
-                res.json({ err: "Token inválido!" })
-            }
-
-        } else {
-            res.status(500);
-            res.json({ err: "Tempo esgotado. Tente novamente."})
-        }
-
-    },
-
-
-    ModAuth(req, res, next){
-
-        const userToken = req.headers['authorization'];
-
-        if(userToken != undefined) {
-
-            const bearer = userToken.split(' ');
-            var uToken = bearer[1];
-
-            if(uToken === process.env.TOKEN_MOD) {
-                next();
-            } else {
-                res.status(401);
-                res.json({ err: "Token inválido!" })
-            }
-
-        } else {
-            res.status(500);
-            res.json({ err: "Tempo esgotado. Tente novamente."})
-        }
-
-    },
-    
-*/
-
 }
-
+}

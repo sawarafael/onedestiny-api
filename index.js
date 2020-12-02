@@ -1,6 +1,7 @@
 const express   = require('express');
 const bp        = require('body-parser');
 const co        = require('colors');
+const cors      = require('cors');
 
 const conn      = require('./utils/dbConn');
 
@@ -13,6 +14,8 @@ const roomRouter        = require('./routes/roomRoute/roomroute');
 
 const app = express();
 require('dotenv').config();
+
+app.use(cors());
 
 app.use(bp.urlencoded({ extended: true }));
 app.use(bp.json());

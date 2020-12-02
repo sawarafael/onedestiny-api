@@ -44,6 +44,7 @@ module.exports = {
                    level:  1,
                })
                Userfavorite.create({
+                   idUser: user.id,
                    favoriteTags: null,
                    favoriteRooms: null
                })
@@ -84,7 +85,6 @@ module.exports = {
                     bcrypt.compare(req.body.password, ps, function(err, result) {
                         if (result == true) {   
 
-
                                 User.findOne({
                                     where: {
                                         username: us
@@ -104,11 +104,27 @@ module.exports = {
                                         }).then((userro) => {
 
                                             if(userro.free == true) {
-                                                res.status(200);
-                                                res.json({ static_token: process.env.TOKEN_USER })
+                                                JWT.sign({ id: userAuth.id, username: userAuth.username }, 
+                                                    process.env.JWT_SECRET_TOKEN_USER, {expiresIn: '48h'}, (err, token) => {
+                                                    if(err){
+                                                        res.status(400);
+                                                        res.json({err: "Falha Interna"})
+                                                    }else {
+                                                        res.status(200);
+                                                        res.json({token: token})
+                                                    }
+                                                })
                                             } else if(userro.premium == true) {
-                                                res.status(200);
-                                                res.json({ static_token: process.env.TOKEN_PREMIUM })
+                                                JWT.sign({ id: userAuth.id, username: userAuth.username }, 
+                                                    process.env.JWT_SECRET_TOKEN_PREMIUM, {expiresIn: '48h'}, (err, token) => {
+                                                    if(err){
+                                                        res.status(400);
+                                                        res.json({err: "Falha Interna - Falha em processar o Token - Premium."})
+                                                    }else {
+                                                        res.status(200);
+                                                        res.json({token: token})
+                                                    }
+                                                })
                                             } else if(userro.adm == true) {
                                                 JWT.sign({ id: userAuth.id, username: userAuth.username }, 
                                                     process.env.JWT_SECRET_TOKEN_ADMIN, {expiresIn: '48h'}, (err, token) => {
@@ -121,38 +137,22 @@ module.exports = {
                                                     }
                                                 })
                                             } else if(userro.mod == true) {
-                                                res.status(200);
-                                                res.json({ static_token: process.env.TOKEN_MOD })
+                                                JWT.sign({ id: userAuth.id, username: userAuth.username }, 
+                                                    process.env.JWT_SECRET_TOKEN_MOD, {expiresIn: '48h'}, (err, token) => {
+                                                    if(err){
+                                                        res.status(400);
+                                                        res.json({err: "Falha Interna"})
+                                                    }else {
+                                                        res.status(200);
+                                                        res.json({token: token})
+                                                    }
+                                                })
                                             } else {
                                                 res.status(401)
                                                 res.json({ err: "Usuário não possui cargo especificado!" })
                                             }
                                     })
                                 })
-
-
-
-
-
-
-
-
-
-                            /*
-                            JWT.sign({ id: userAuth.id, username: userAuth.username }, 
-                                process.env.JWT_SECRET_TOKEN_ADMIN, {expiresIn: '48h'}, (err, token) => {
-                                if(err){
-                                    res.status(400);
-                                    res.json({err: "Falha Interna"})
-                                }else {
-                                    res.status(200);
-                                    res.json({token: token})
-                                }
-                            })
-                            */
-                           
-
-                //res.json({ sucess: "Autenticação confirmada." });
                     } else {
                         res.status(404)
                         res.json({ error: "Senha inválida."});
@@ -160,6 +160,8 @@ module.exports = {
                     });
                 }
 
+        }).catch((err) => {
+            console.log("Erro em achar o usuário! " +err)
         })
 
     },
@@ -190,12 +192,21 @@ module.exports = {
                     const user_is_adm = userr.adm;
                     const user_is_mod = userr.mod;
 
-                    res.status(200);
-                    res.json({ user_view: { user_view_id, user_view_username }, 
-                               user_data: { user_data_avatar, user_data_bio, user_data_lvl }, 
-                               user_role: { user_is_free, user_is_premium, user_is_adm, user_is_mod } });
-    
+                    Userfavorite.findOne({
+                        where: { idUser: user_view_id }
+                    }).then((userf) => {
 
+                        const user_favorites_tags = userf.favoriteTags;
+                        const user_favorites_rooms = userf.favoriteRooms;
+
+                        res.status(200);
+                        res.json({ user_view: { user_view_id, user_view_username }, 
+                                   user_data: { user_data_avatar, user_data_bio, user_data_lvl }, 
+                                   user_favs: { user_favorites_tags, user_favorites_rooms},
+                                   user_role: { user_is_free, user_is_premium, user_is_adm, user_is_mod } });
+                    })
+
+                  
                 })
 
 
@@ -428,5 +439,75 @@ module.exports = {
             res.json({ err: "Usuário não encontrado." })
         })
 
+    },
+
+    UserFavoriteAddFavorites(req, res){
+
+        User.findOne({
+            where: {
+                id: req.body.id
+            },
+            attributes: [ 'id' ]
+        }).then((useri) => {
+
+            Userfavorite.findOne({
+                where: {
+                    idUser: useri.id
+                }
+            }).then((userfa) => {
+
+                const favorites = {
+                    tag: req.body.tag,
+                    room: req.body.room
+                }
+
+                console.log(favorites + useri.id)
+
+                
+                Userfavorite.update({ 
+                    favoriteTags: favorites.tag,
+                    favoriteRooms: favorites.room
+                }, {
+                    where: {
+                        idUser: userfa.idUser
+                    }
+                })
+
+                res.status(200)
+
+            })
+
+        })
+
+    },
+
+    UserFavoritesView(req, res) {
+
+        User.findOne({
+            where: {
+                id: req.body.id
+            }, 
+            attributes: [ 'id' ]
+        }).then((useri) => {
+
+            Userfavorite.findOne({
+                where: {
+                    idUser: req.body.id
+                }
+            }).then((userfa) => {
+
+                res.status(200);
+                res.json({ favoriteTags: [userfa.favoriteTags], favoriteRooms: [userfa.favoriteRooms]  })
+
+            }).catch((err) => {
+                res.status(400);
+                res.json({ err: "O usuário não possui registros de favoritos." })
+            })            
+        }).catch(() => {
+            res.status(400);
+            res.json({ err: "Usuário não encontrado." })
+        }) 
     }
+
+
 }

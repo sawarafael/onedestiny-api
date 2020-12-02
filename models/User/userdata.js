@@ -21,6 +21,4 @@ Userdata.associate = (models) => {
     Userdata.belongsTo(models.user, {foreignKey: 'id', as: 'users'})
 }
 
-
-
 module.exports = Userdata;
