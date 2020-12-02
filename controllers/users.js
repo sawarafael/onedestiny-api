@@ -481,33 +481,5 @@ module.exports = {
 
     },
 
-    UserFavoritesView(req, res) {
-
-        User.findOne({
-            where: {
-                id: req.body.id
-            }, 
-            attributes: [ 'id' ]
-        }).then((useri) => {
-
-            Userfavorite.findOne({
-                where: {
-                    idUser: req.body.id
-                }
-            }).then((userfa) => {
-
-                res.status(200);
-                res.json({ favoriteTags: [userfa.favoriteTags], favoriteRooms: [userfa.favoriteRooms]  })
-
-            }).catch((err) => {
-                res.status(400);
-                res.json({ err: "O usuário não possui registros de favoritos." })
-            })            
-        }).catch(() => {
-            res.status(400);
-            res.json({ err: "Usuário não encontrado." })
-        }) 
-    }
-
 
 }

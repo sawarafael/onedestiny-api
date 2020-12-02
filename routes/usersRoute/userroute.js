@@ -15,7 +15,6 @@ Userroute.post('/normal/friend/request', auth.Auth, user.friendListRequest);
 Userroute.put('/normal/friend/update', auth.Auth, user.friendListUpdate);
 Userroute.get('/normal/friend/view', auth.Auth, user.friendListView);
 
-Userroute.get('/normal/favorite/view/all', auth.Auth, user.UserFavoritesView);
 Userroute.put('/normal/favorite/add', auth.Auth, user.UserFavoriteAddFavorites);
 
 
