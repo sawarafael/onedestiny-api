@@ -10,7 +10,7 @@ module.exports = {
     if(authToken != undefined) {
 
         const bearer = authToken.split(' ');
-        var token = bearer[1];  
+        var token = bearer[0]; 
 
         jwt.verify(token, process.env.JWT_SECRET_TOKEN_ADMIN, (err, data) => {
             if(err) {

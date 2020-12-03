@@ -111,7 +111,7 @@ module.exports = {
                                                         res.json({err: "Falha Interna"})
                                                     }else {
                                                         res.status(200);
-                                                        res.json({token: token})
+                                                        res.json({token: token, id: useri.id})
                                                     }
                                                 })
                                             } else if(userro.premium == true) {
@@ -122,7 +122,7 @@ module.exports = {
                                                         res.json({err: "Falha Interna - Falha em processar o Token - Premium."})
                                                     }else {
                                                         res.status(200);
-                                                        res.json({token: token})
+                                                        res.json({token: token, id: useri.id})
                                                     }
                                                 })
                                             } else if(userro.adm == true) {
@@ -133,7 +133,7 @@ module.exports = {
                                                         res.json({err: "Falha Interna"})
                                                     }else {
                                                         res.status(200);
-                                                        res.json({token: token})
+                                                        res.json({token: token, id: useri.id})
                                                     }
                                                 })
                                             } else if(userro.mod == true) {
@@ -144,7 +144,7 @@ module.exports = {
                                                         res.json({err: "Falha Interna"})
                                                     }else {
                                                         res.status(200);
-                                                        res.json({token: token})
+                                                        res.json({token: token, id: useri.id})
                                                     }
                                                 })
                                             } else {
@@ -169,7 +169,7 @@ module.exports = {
     dataview(req, res){ 
 
         User.findOne({
-                where: { id : req.body.id } 
+                where: { id : req.query.id } 
         }).then((userd) => {
 
             const user_view_id = userd.id;
@@ -204,20 +204,21 @@ module.exports = {
                                    user_data: { user_data_avatar, user_data_bio, user_data_lvl }, 
                                    user_favs: { user_favorites_tags, user_favorites_rooms},
                                    user_role: { user_is_free, user_is_premium, user_is_adm, user_is_mod } });
-                    })
-
-                  
+                    }).catch(() => {
+                        res.status(400);
+                        res.json({ err: "Erro em encontrar os favoritos do usuário." })
+                    })                  
+                }).catch((err) => {
+                    res.status(400);
+                    res.json({ err: "Erro em encontrar o cargo do usuário." })
                 })
-
-
             }).catch((err) => {
-                res.status(404);
+                res.status(400);
                 res.json({ err: "Erro do Servidor ao Entregar os Dados." })
             })
-
-            
-
-
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Erro em encontrar o usuário." })
         })
     },
 
@@ -225,7 +226,7 @@ module.exports = {
 
         User.findOne({
             where: {
-                id: req.body.id
+                id: req.params.id
             }
         }).then((userv) => {
 
