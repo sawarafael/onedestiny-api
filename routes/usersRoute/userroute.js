@@ -13,8 +13,11 @@ Userroute.put('/normal/lvlup', auth.Auth, user.levelup);
 
 Userroute.post('/normal/friend/request', auth.Auth, user.friendListRequest);
 Userroute.put('/normal/friend/update', auth.Auth, user.friendListUpdate);
-Userroute.get('/normal/friend/view', auth.Auth, user.friendListView);
+Userroute.get('/normal/friend/view/id', auth.Auth, user.friendListView);
 
 Userroute.put('/normal/favorite/add', auth.Auth, user.UserFavoriteAddFavorites);
+
+Userroute.post('/normal/user/post/new/', auth.Auth, user.UserpostNewPost);
+Userroute.get('/normal/user/post/view/id', auth.Auth, user.UserpostView);
 
 module.exports = Userroute;

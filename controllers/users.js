@@ -3,13 +3,13 @@ const UserData = require('./../models/User/userdata');
 const Userfavorite = require('./../models/User/userfavorite');
 const Userfriends = require('./../models/User/userfriends');
 const Userrole = require('./../models/User/userrole');
+const Userpost = require('./../models/User/userPosts');
 
 const bcrypt = require('bcrypt');
 const salt = 10;
 
 const JWT = require('jsonwebtoken');
 const Userdata = require('./../models/User/userdata');
-
 
 module.exports = {
 
@@ -39,6 +39,9 @@ module.exports = {
                 res.json({ msg: "Usuário cadastrado!"});
 
                UserData.create({
+                   nickname: null,
+                   coverPage: null,
+                   userPosts: 0,
                    avatar: null,
                    bio: null,
                    level:  1,
@@ -182,6 +185,7 @@ module.exports = {
                 const user_data_avatar = userd.avatar;
                 const user_data_bio = userd.bio;
                 const user_data_lvl = userd.level;
+                const user_data_coverPage = userd.coverPage;
 
                 Userrole.findOne({
                     where: { id : user_view_id }
@@ -201,7 +205,7 @@ module.exports = {
 
                         res.status(200);
                         res.json({ user_view: { user_view_id, user_view_username }, 
-                                   user_data: { user_data_avatar, user_data_bio, user_data_lvl }, 
+                                   user_data: { user_data_avatar, user_data_bio, user_data_lvl, user_data_coverPage }, 
                                    user_favs: { user_favorites_tags, user_favorites_rooms},
                                    user_role: { user_is_free, user_is_premium, user_is_adm, user_is_mod } });
                     }).catch(() => {
@@ -232,6 +236,7 @@ module.exports = {
 
             Userdata.update({
                 avatar: req.body.avatar,
+                coverPage: req.body.coverPage,
                 bio: req.body.bio
             }, {
                 where: {
@@ -300,8 +305,7 @@ module.exports = {
 
             User.findOne({
                 where: {
-                    id: req.body.id2,
-                    username: req.body.usernamer
+                    id: req.body.id2
                 }
             }).then((userv) => {
 
@@ -310,6 +314,13 @@ module.exports = {
                 Userfriends.create({
                     idUser: userv1,
                     idFriend: userv2,
+                    status: 0,
+                    action: req.body.action
+                })
+
+                Userfriends.create({
+                    idUser: userv2,
+                    idFriend: userv1,
                     status: 0,
                     action: req.body.action
                 })
@@ -396,10 +407,9 @@ module.exports = {
 
     friendListView(req, res) {
 
-
         User.findOne({
             where: {
-                id: req.body.id1
+                id: req.query.id
             }
         }).then((userv) => {
 
@@ -429,7 +439,6 @@ module.exports = {
                     })
                 }
 
-                
             }).catch((err) => {
                 res.status(404);
                 res.json({ err: "Erro ao tentar encontrar o ID do Usuário." })
@@ -481,6 +490,81 @@ module.exports = {
         })
 
     },
+
+    UserpostNewPost(req, res) {
+
+        User.findOne({ 
+            where: {
+                id: req.body.id
+            }
+        }).then((useri) => {
+
+            UserData.findOne({ 
+                where: {
+                    id: useri.id
+                },
+                attributes: [ 'id', 'userPosts' ]
+            }).then((userd) => {
+
+                Userpost.create({ 
+                    idUser: userd.id,
+                    content: req.body.content
+                })
+
+                const count = userd.userPosts;
+                const newPost = count + 1                
+
+                UserData.update({
+                    userPosts: newPost
+                }, {
+                    where: {
+                        id: userd.id
+                    }
+                })
+
+                res.status(200);
+                res.json({ msg: "Post de Usuário criado." })
+            }).catch((err) => {
+                res.status(400);
+                res,json({ err: "Falha em encontrar os dados do Usuário." })
+            })
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Falha em encontrar o Usuário." })
+        })
+
+    },
+
+    UserpostView(req, res){
+
+        User.findOne({
+            where: {
+                id: req.query.id
+            },
+            attributes: ['id', 'username']
+        }).then((useri) => {
+
+            UserData.findOne({
+                where: {
+                    id: useri.id
+                },
+                attributes: ['id']
+            }).then((userd) => {
+
+                Userpost.findAll({
+                    where: {
+                        idUser: userd.id
+                    },
+                    attributes: ['id', 'content', 'createdAt']
+                }).then((userp) => {
+
+                    res.status(200);
+                    res.json({ user: [userd.id, useri.username], user_posts: userp })
+                })
+            })
+        })
+
+    }
 
 
 }

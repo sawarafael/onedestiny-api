@@ -1,11 +1,22 @@
 const Sequelize = require('sequelize');
 const db = require('../../utils/dbConn');
-const User = require('./user');
 
 const Userdata = db.define('userdata', {
+    nickname: {
+        type: Sequelize.STRING,
+        allowNull: true
+    }, 
     avatar: {
         type: Sequelize.STRING,
         allowNull: true
+    },
+    coverPage: {
+        type: Sequelize.STRING,
+        allowNull: true
+    },
+    userPosts : {
+        type: Sequelize.INTEGER,
+        allownull: true
     },
     bio: {
         type: Sequelize.STRING,

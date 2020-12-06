@@ -4,7 +4,6 @@ const RoomRoute = express.Router();
 const users = require('./../../middlewares/verify')
 
 const room = require('./../../controllers/rooms');
-const Room = require('../../models/Room/room');
 
 RoomRoute.post('/create/new', users.Auth, room.createRoom);
 RoomRoute.get('/view/rooms', users.Auth, room.seeDataRoom);
