@@ -1,4 +1,5 @@
 const Sequelize = require('sequelize');
+const { viewUserTagsFavorites } = require('../controllers/users');
 const db = require('./../utils/dbConn');
 
 const Tag = db.define('tags', {
@@ -16,7 +17,15 @@ const Tag = db.define('tags', {
         type: Sequelize.STRING,
         allowNull: true
     }
+},
+{
+    timestamps: false
 })
 
+Tag.associate = models => {
+    Tag.hasMany(models.Userfavorites, {
+        onDelete: "cascade"
+    })
+}
 
 module.exports = Tag;

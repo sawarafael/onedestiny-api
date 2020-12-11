@@ -1,11 +1,11 @@
 const Sequelize = require('sequelize');
-const db = require('../../utils/dbConn');
+const db = require('./../../utils/dbConn');
 
 const User = require('./../User/user');
-const Role = require('./../User/role');
+const Ticket = require('./ticket');
 
-const Userrole = db.define('userrole', {
-    id: {
+const Coordenator = db.define('coordenator', {
+    idCoord: {
         type: Sequelize.INTEGER,
         allowNull: false,
         primaryKey: true,
@@ -15,16 +15,16 @@ const Userrole = db.define('userrole', {
     timestamps: false
 })
 
-Userrole.belongsTo(User, {
+Coordenator.belongsTo(User, {
     foreignKey: {
-        allowNull: false
+        allowNull: true
+    }
+})
+
+Coordenator.belongsTo(Ticket, {
+    foreignKey: {
+        allowNull: true
     }
 });
 
-Userrole.belongsTo(Role, {
-    foreignKey: {
-        allowNull: false
-    }
-});
-
-module.exports = Userrole;
+module.exports = Coordenator;

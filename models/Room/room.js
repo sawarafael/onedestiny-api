@@ -1,30 +1,38 @@
 const Sequelize = require('sequelize');
 const db = require('./../../utils/dbConn');
 
+const User = require('./../User/user');
+
 const Room = db.define('room', {
     id: {
         type: Sequelize.INTEGER,
         allowNull: false, 
         primaryKey: true,
         autoIncrement: true
-    },
-    idUser: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
     }, 
     roomName: {
         type: Sequelize.STRING,
         allowNull: false
-    },
-    status: {
-        type: Sequelize.INTEGER,
+    }
+},
+{
+    timestamps: false
+})
+
+Room.belongsTo(User, {
+    foreigKey: {
         allowNull: false
     }
 })
 
-Room.associate = (models) => {
-    Room.belongsTo(models.user, {foreignKey: 'id', as: 'roomid'})
-}
+Room.associate = models => {   
+    Room.hasOne(models.RoomData, {
+        onDelete: "cascade"
+    })
 
+    Room.hasMany(models.Roomrecords, {
+        onDelete: "cascade"
+    })
+}
 
 module.exports = Room;

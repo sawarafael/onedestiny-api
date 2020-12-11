@@ -1,7 +1,9 @@
 const Sequelize = require('sequelize');
 const db = require('../../utils/dbConn');
 
-const Userdata = db.define('userdata', {
+const User = require('./user')
+
+const Userdata = db.define('userdata', {    
     nickname: {
         type: Sequelize.STRING,
         allowNull: true
@@ -14,22 +16,23 @@ const Userdata = db.define('userdata', {
         type: Sequelize.STRING,
         allowNull: true
     },
-    userPosts : {
-        type: Sequelize.INTEGER,
-        allownull: true
-    },
     bio: {
         type: Sequelize.STRING,
         allowNull: true
     },
     level: {
         type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+    }
+}, {
+    timestamps: false
+})
+
+Userdata.belongsTo(User, {
+    foreingKey: {
         allowNull: false
     }
 })
-
-Userdata.associate = (models) => {
-    Userdata.belongsTo(models.user, {foreignKey: 'id', as: 'users'})
-}
 
 module.exports = Userdata;

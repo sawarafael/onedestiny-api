@@ -1,19 +1,25 @@
 const Sequelize = require('sequelize');
 const db = require('../../utils/dbConn');
 
-const UserPosts = db.define('userpost', {
-    idUser: {
-        type: Sequelize.INTEGER,
-        allowNull: false
-    },    
+const User = require('./user');
+
+const Userposts = db.define('userpost', {    
     content: {
         type: Sequelize.STRING,
         allowNull: false
     }
 })
 
-UserPosts.associate = (models) => {
-    UserPosts.belongsTo(models.user, {foreignKey: 'id', as: 'users'})
+Userposts.belongsTo(User, {
+    foreignKey: {
+        allowNull: false
+    }
+})
+
+Userposts.associate = models => {
+    Userposts.hasMany(models.Userpostcomments, {
+        onDelete: "cascade"
+    })
 }
 
-module.exports = UserPosts;
+module.exports = Userposts;

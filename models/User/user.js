@@ -22,4 +22,53 @@ const User = db.define('user', {
     }
 })
 
+
+User.associate = models => {
+    User.hasOne(models.Userrole, {
+        onDelete: "cascade"
+    })
+
+    User.hasOne(models.userdata, {
+        onDelete: "cascade",
+        onUpdate: "cascade"
+    })
+
+    User.hasMany(models.Userrelationships, {
+        onDelete: "cascade"
+    })
+
+    User.hasMany(models.Userposts, {
+        onDelete: "cascade"
+    })
+
+    User.hasMany(models.Userfavorites, {
+        onDelete: "cascade"
+    })
+
+    User.hasOne(models.Coordenator, {
+        onDelete: "cascade"
+    })
+
+    User.hasMany(models.Room, {
+        onDelete: "cascade"
+    })
+
+    User.hasMany(models.Roomdata, {
+        onDelete: "cascade"
+    })
+
+    User.hasMany(models.roomrecord, {
+        onDelete: "cascade"
+    })
+
+    User.hasOne(models.usermedals, {
+        onDelete: "cascade"
+    })
+
+    User.hasMany(Ticket, {
+        onDelete: "cascade",
+        onUpdate: "cascade"
+    })
+} 
+
 module.exports = User;

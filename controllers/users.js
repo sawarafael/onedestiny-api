@@ -1,15 +1,98 @@
 const User = require('./../models/User/user');
-const UserData = require('./../models/User/userdata');
-const Userfavorite = require('./../models/User/userfavorite');
-const Userfriends = require('./../models/User/userfriends');
+const Userdata = require('./../models/User/userdata');
 const Userrole = require('./../models/User/userrole');
-const Userpost = require('./../models/User/userPosts');
+const Userfriend = require('./../models/User/userrelationships');
+const Userfriendcode = require('./../models/User/userrelationshipstatus');
+const Userfavorites = require('./../models/User/userfavorites');
+const Usermedals = require('./../models/User/usermedals');
+const Userpost = require('./../models/User/userposts');
+const Userpostcomment = require('./../models/User/userpostcomments');
+const Role = require('./../models/User/role');
+
+const tags = require('./../models/tags');
 
 const bcrypt = require('bcrypt');
 const salt = 10;
 
 const JWT = require('jsonwebtoken');
-const Userdata = require('./../models/User/userdata');
+const Medals = require('../models/Medals');
+const Userpostcomments = require('./../models/User/userpostcomments');
+const Tag = require('./../models/tags');
+
+//Pertence ao User
+Userdata.belongsTo(User, {
+    allowNull: false
+})
+
+Userrole.belongsTo(User, {
+    allowNull: false
+})
+
+Userrole.belongsTo(Role, {
+    allowNull: false
+})
+
+Usermedals.belongsTo(User, {
+    allowNull: false
+})
+
+Usermedals.belongsTo(Medals, {
+    allowNull: false
+})
+
+Userpost.belongsTo(User, {
+    allowNull: false
+})
+
+Userpostcomments.belongsTo(Userpost, {
+    allowNull: false
+})
+
+Userfavorites.belongsTo(User, {
+    allowNull: false
+})
+
+//Outro tem um tal
+Role.hasOne(Userrole, {
+    onDelete: "cascade",
+    onUpdate: "cascade"
+})
+
+Medals.hasOne(Usermedals, {
+    onDelete: "cascade",
+    onUpdate: "cascade"
+})
+
+//User tem um ou muitos tals
+User.hasOne(Userdata, {
+    onDelete: "cascade",
+    onUpdate: "cascade"
+})
+
+User.hasOne(Userrole, {
+    onDelete: "cascade",
+    onUpdate: "cascade"
+})
+
+User.hasMany(Userpost, {
+    onDelete: "cascade",
+    onUpdate: "cascade"
+})
+
+Userpost.hasMany(Userpostcomment, {
+    onDelete: "cascade",
+    onDelete: "cascade"
+})
+
+User.hasMany(Userfavorites, {
+    onDelete: "cascade",
+    onUpdate: "cascade"
+})
+
+User.hasOne(Usermedals, {
+    onDelete: "cascade"
+})
+
 
 module.exports = {
 
@@ -19,17 +102,15 @@ module.exports = {
             where: {
                  email:      req.body.email.trim().toLowerCase(),
                  username:   req.body.username
-             }
+             },
+             attributes : ['id']
         }).then(user => {
             if(user) {
                 res.status(400);
-                res.json({ err: "Este Email ou Usuário já está Cadastrado no Sistema!"});
-                
-            } else {
-                
-     
-        bcrypt.hash(req.body.password, salt, function (err, hash) {
-     
+                res.json({ err: "Este Email ou Usuário já está Cadastrado no Sistema!"});                
+            } else {         
+        bcrypt.hash(req.body.password, salt, function (err, hash) {     
+            
             User.create({
                 username: req.body.username,
                 email: req.body.email,
@@ -38,36 +119,29 @@ module.exports = {
                 res.status(200);
                 res.json({ msg: "Usuário cadastrado!"});
 
-               UserData.create({
+               Userdata.create({
+                   userId: user.id,
                    nickname: null,
                    coverPage: null,
-                   userPosts: 0,
                    avatar: null,
-                   bio: null,
-                   level:  1,
+                   bio: null
                })
-               Userfavorite.create({
-                   idUser: user.id,
-                   favoriteTags: null,
-                   favoriteRooms: null
-               })
-               Userrole.create({
-                   free: 1,
-                   premium: 0,
-                   adm: 0,
-                   mod: 0
-               })
+               Role.findOne({ 
+                   where: {
+                       id: 1
+                   },
+                   attributes: ['id']
+                }).then((resp) => {                   
+                    Userrole.create({
+                        userId: user.id,
+                        roleId: resp.id
+                    })
+                })
             })
-       })
-       
-            }
-        })
-     
-     
+       })      
+            
 
-
-
-
+    } })
 
     },
 
@@ -92,69 +166,84 @@ module.exports = {
                                     where: {
                                         username: us
                                     }, 
-                                    attributes: [ 
-                                        'id', 'username'
-                                     ]
+                                    attributes: ['id', 'username']
                                 }).then((useri) => {
 
                                         Userrole.findOne({
                                             where: {
-                                                id: useri.id
-                                            }, 
-                                            attributes: [
-                                                'free', 'premium', 'adm', 'mod'
-                                            ]
-                                        }).then((userro) => {
-
-                                            if(userro.free == true) {
-                                                JWT.sign({ id: userAuth.id, username: userAuth.username }, 
-                                                    process.env.JWT_SECRET_TOKEN_USER, {expiresIn: '48h'}, (err, token) => {
-                                                    if(err){
-                                                        res.status(400);
-                                                        res.json({err: "Falha Interna"})
+                                                userId: useri.id
+                                            },
+                                            attributes: ['roleId']
+                                            }).then((userro) => { 
+                                                
+                                                Role.findOne({
+                                                    where: {
+                                                        id: userro.roleId
+                                                    },
+                                                    attributes: ['id', 'permission']
+                                                }).then((role) => {
+                                                    
+                                                    console.log(role.id)
+                                                    
+                                                    if(userro.roleId == 1) {
+                                                        JWT.sign({ id: userAuth.id, username: userAuth.username }, 
+                                                        process.env.JWT_SECRET_TOKEN_USER, {expiresIn: '48h'}, (err, token) => {
+                                                            if(err){
+                                                                res.status(400);
+                                                                res.json({err: "Falha Interna - Falha em processar o Token - User."})
+                                                            } else {
+                                                                res.status(200);
+                                                                res.json({token: token, id: useri.id, role: role.permission})
+                                                            }
+                                                        })
+                                                    } else if(userro.roleId == 2) {
+                                                        JWT.sign({ id: userAuth.id, username: userAuth.username }, 
+                                                        process.env.JWT_SECRET_TOKEN_PREMIUM, {expiresIn: '48h'}, (err, token) => {
+                                                            if(err){
+                                                                res.status(400);
+                                                                res.json({err: "Falha Interna - Falha em processar o Token - Premium."})
+                                                            }else {
+                                                                res.status(200);
+                                                                res.json({token: token, id: useri.id, role: role.permission})
+                                                            }
+                                                        })
+                                                    } else if(userro.roleId == 4) {
+                                                        JWT.sign({ id: userAuth.id, username: userAuth.username }, 
+                                                        process.env.JWT_SECRET_TOKEN_ADMIN, {expiresIn: '48h'}, (err, token) => {
+                                                            if(err){
+                                                                res.status(400);
+                                                        res.json({err: "Falha Interna - Falha em processar o Token - Administrador"})
                                                     }else {
                                                         res.status(200);
-                                                        res.json({token: token, id: useri.id})
+                                                        res.json({token: token, id: useri.id, role: role.permission})
                                                     }
                                                 })
-                                            } else if(userro.premium == true) {
-                                                JWT.sign({ id: userAuth.id, username: userAuth.username }, 
-                                                    process.env.JWT_SECRET_TOKEN_PREMIUM, {expiresIn: '48h'}, (err, token) => {
-                                                    if(err){
-                                                        res.status(400);
-                                                        res.json({err: "Falha Interna - Falha em processar o Token - Premium."})
-                                                    }else {
-                                                        res.status(200);
-                                                        res.json({token: token, id: useri.id})
-                                                    }
-                                                })
-                                            } else if(userro.adm == true) {
-                                                JWT.sign({ id: userAuth.id, username: userAuth.username }, 
-                                                    process.env.JWT_SECRET_TOKEN_ADMIN, {expiresIn: '48h'}, (err, token) => {
-                                                    if(err){
-                                                        res.status(400);
-                                                        res.json({err: "Falha Interna"})
-                                                    }else {
-                                                        res.status(200);
-                                                        res.json({token: token, id: useri.id})
-                                                    }
-                                                })
-                                            } else if(userro.mod == true) {
+                                            } else if(userro.roleId == 3) {
                                                 JWT.sign({ id: userAuth.id, username: userAuth.username }, 
                                                     process.env.JWT_SECRET_TOKEN_MOD, {expiresIn: '48h'}, (err, token) => {
                                                     if(err){
                                                         res.status(400);
-                                                        res.json({err: "Falha Interna"})
+                                                        res.json({err: "Falha Interna - Falha em processar o Token - Moderador"})
                                                     }else {
                                                         res.status(200);
-                                                        res.json({token: token, id: useri.id})
+                                                        res.json({token: token, id: useri.id, role: role.permission})
                                                     }
                                                 })
                                             } else {
                                                 res.status(401)
                                                 res.json({ err: "Usuário não possui cargo especificado!" })
                                             }
+                                        }).catch((err) => {
+                                            res.status(400);
+                                            res.json({ err: "Não foi possível entregar a permissão ao usuário." })
+                                        })
+                                    }).catch((err) => {
+                                        res.status(400);
+                                        res.json({ err: "Não foi possível encontrar o cargo do usuário." })
                                     })
+                                }).catch((err) => {
+                                    res.status(400);
+                                    res.json({ err: "Usuário inexistente ou não foi possível encontrar seu dado." })
                                 })
                     } else {
                         res.status(404)
@@ -162,7 +251,6 @@ module.exports = {
                     }
                     });
                 }
-
         }).catch((err) => {
             console.log("Erro em achar o usuário! " +err)
         })
@@ -171,58 +259,20 @@ module.exports = {
 
     dataview(req, res){ 
 
-        User.findOne({
-                where: { id : req.query.id } 
-        }).then((userd) => {
-
-            const user_view_id = userd.id;
-            const user_view_username = userd.username;
-
-            UserData.findOne({
-                where: { id : user_view_id }
-            }).then((userd) => {
-
-                const user_data_avatar = userd.avatar;
-                const user_data_bio = userd.bio;
-                const user_data_lvl = userd.level;
-                const user_data_coverPage = userd.coverPage;
-
-                Userrole.findOne({
-                    where: { id : user_view_id }
-                }).then((userr) => {
-
-                    const user_is_free = userr.free;
-                    const user_is_premium = userr.premium;
-                    const user_is_adm = userr.adm;
-                    const user_is_mod = userr.mod;
-
-                    Userfavorite.findOne({
-                        where: { idUser: user_view_id }
-                    }).then((userf) => {
-
-                        const user_favorites_tags = userf.favoriteTags;
-                        const user_favorites_rooms = userf.favoriteRooms;
-
-                        res.status(200);
-                        res.json({ user_view: { user_view_id, user_view_username }, 
-                                   user_data: { user_data_avatar, user_data_bio, user_data_lvl, user_data_coverPage }, 
-                                   user_favs: { user_favorites_tags, user_favorites_rooms},
-                                   user_role: { user_is_free, user_is_premium, user_is_adm, user_is_mod } });
-                    }).catch(() => {
-                        res.status(400);
-                        res.json({ err: "Erro em encontrar os favoritos do usuário." })
-                    })                  
-                }).catch((err) => {
-                    res.status(400);
-                    res.json({ err: "Erro em encontrar o cargo do usuário." })
-                })
-            }).catch((err) => {
-                res.status(400);
-                res.json({ err: "Erro do Servidor ao Entregar os Dados." })
-            })
+        User.findAll({
+            where: { id: req.query.id }, 
+            include: [{model: Userdata, attributes:['nickname', 'avatar', 'coverPage', 'bio', 'level']},
+                      {model: Userrole, attributes: ['roleId'],
+                      include:[{model: Role, attributes: ['permission']}]
+                      }
+                     ],
+            attributes: ['id', 'username']
+         }).then((userd) => {
+            res.status(200); 
+            res.json({ userd })            
         }).catch((err) => {
             res.status(400);
-            res.json({ err: "Erro em encontrar o usuário." })
+            res.json({ err: "Não foi possível encontrar o o usuário." })
         })
     },
 
@@ -235,6 +285,7 @@ module.exports = {
         }).then((userv) => {
 
             Userdata.update({
+                nickname: req.body.nickname,
                 avatar: req.body.avatar,
                 coverPage: req.body.coverPage,
                 bio: req.body.bio
@@ -243,27 +294,19 @@ module.exports = {
                     id: userv.id
                 }
                 })
-
                 res.status(200);
                 res.json({ msg: "Perfil Atualizado!" });
-
         }).catch((err) => {
             res.status(404);
             res.json({ err: "Erro em encontrar o usuário." })
         })
-
-
     },
 
-    levelup(req, res){
+    levelup(req, res){     
 
-        const up = req.body.up;
-
-        if (up == true && up == 1) {
-
-            UserData.findOne({
+            Userdata.findOne({
                 where: {
-                    id: req.body.id
+                    id: req.query.id
                 }
             }).then((userlvl) => {
 
@@ -271,25 +314,19 @@ module.exports = {
 
                 newlvl = count + 1;
 
-                    UserData.update({
+                    Userdata.update({
                         level: newlvl
                     }, {
                         where: {
-                            id: req.body.id
+                            id: req.query.id
                         }
                     })
-
+                    res.status(200);
+                    res.json({ msg: "Level do Usuário Atualizado!" })
             }).catch((err) => {
                 res.status(400);
                 res.json({ err: "Falha em encontrar o Usuário." })
             })
-
-        } else {
-            res.status(404);
-            res.json({ err: "Falha no Level Up!" })
-        }
-        
-
 
     },
 
@@ -298,104 +335,128 @@ module.exports = {
         User.findOne({
             where: {
                 id: req.body.id1
+            },
+            attributes: ['id']
+        }).then((uservo) => {
+            
+            if(uservo) { 
+                User.findOne({
+                    where: {
+                        id: req.body.id2
+                    },
+                    attributes: ['id']
+                }).then((uservt) => {
+
+                    if(uservt) {
+
+                        Userfriend.findOne({
+                            where: {
+                                idUserOne: uservo.id,
+                                idUserTwo: uservt.id
+                            }
+                        }).then((exist) => {
+                            if(exist) {
+                                res.status(401);
+                                res.json({ err: "Este relacionamento já existe." })
+                            } else {
+                                Userfriend.create({
+                                    idUserOne: uservo.id,
+                                    idUserTwo: uservt.id,
+                                    statusCode: 1
+                                }).then((res) => {
+                                    res.status(200);
+                                    res.json({ msg: "Requisição de Amizade realizada!" })
+                                }).catch((err) => {
+                                    res.json({ err })
+                                })
+                            }
+                        }).catch((err) => {
+                            res.status(400);
+                            res.json({ err: "Erro em encontrar as Amizades" })
+                        })                        
+                    }else {
+                        res.status(401);
+                        res.json({ err: "Não foi possível confirmar o usuário requisitado." })
+                    }
+                }).catch((err) => {
+                    res.status(400);
+                    res.json({ err: "Não foi possível encontrar o usuário requisitado." })
+                })
+            } else {
+                res.status(401);
+                res.json({ err: "Não foi possível confirmar o usuário requerente." })
             }
-        }).then((userv) => {
-
-            const userv1 = userv.id;
-
-            User.findOne({
-                where: {
-                    id: req.body.id2
-                }
-            }).then((userv) => {
-
-                const userv2 = userv.id
-
-                Userfriends.create({
-                    idUser: userv1,
-                    idFriend: userv2,
-                    status: 0,
-                    action: req.body.action
-                })
-
-                Userfriends.create({
-                    idUser: userv2,
-                    idFriend: userv1,
-                    status: 0,
-                    action: req.body.action
-                })
-
-                res.status(200);
-                res.json({ msg: "Requisição de pedido de amizade realizada com sucesso!" })
-
-            }).catch((err) => {
-                res.status(404);
-                res.json({ err: "Erro ao encontrar o usuário requerido." });
-            })
         }).catch((err) => {
-            res.status(404);
-            res.json({ err: "Erro ao encontrar o usuário requerente."});
+            res.status(400);
+            res.json({ err: "Não foi possível encontrar o usuário requisitado." })
         })
     },
 
     friendListUpdate(req, res) {
-
         
-            const resp = req.body.resp;
+            const resp = req.params.resp;
 
             switch(resp) {
                 case '1': 
-                        Userfriends.update({
-                            status: 1,
-                            action: req.body.action
+                        Userfriend.update({
+                            statusCode: 1,
                         }, {
                             where: {
-                                    idUser: req.body.id1,
-                                    idFriend: req.body.id2
+                                    idUserOne: req.body.id1,
+                                    idUserTwo: req.body.id2
                             }
                         })
                         res.status(200);
                         res.json({ msg: "Requisição confirmada." })
                         break;
                 case '2': 
-                        Userfriends.update({
-                            status: 2,
-                            action: req.body.action
+                        Userfriend.update({
+                            statusCode: 2
                         }, {
                             where: {
-                                    idUser: req.body.id1,
-                                    idFriend: req.body.id2
+                                    idUserOne: req.body.id1,
+                                    idUserTwo: req.body.id2
                         }
                         })
                         res.status(200);
                         res.json({ msg: "Requisição confirmada." })
                         break;
                 case '3': 
-                        Userfriends.update({
-                            status: 3,
-                            action: req.body.action
+                        Userfriend.update({
+                            statusCode: 3
                         }, {
                             where: {
-                                    idUser: req.body.id1,
-                                    idFriend: req.body.id2
+                                    idUserOne: req.body.id1,
+                                    idUserTwo: req.body.id2
                         }
                         })
                         res.status.update(200);
                         res.json({ msg: "Requisição confirmada." })
                         break;                        
                 case '4':
-                        Userfriends.update({
-                            status: 4,
-                            action: req.body.action
+                        Userfriend.update({
+                            statusCode: 4
                         }, {
                             where: {
-                                    idUser: req.body.id1,
-                                    idFriend: req.body.id2
+                                    idUserOne: req.body.id1,
+                                    idUserTwo: req.body.id2
                             }
                         })
                         res.status.update(200);
                         res.json({ msg: "Requisição confirmada." })
-                        break; 
+                        break;
+                case '5':
+                        Userfriend.update({
+                            statusCode: 5
+                            }, {
+                                where: {
+                                        idUserOne: req.body.id1,
+                                        idUserTwo: req.body.id2
+                                }
+                            })
+                            res.status.update(200);
+                            res.json({ msg: "Requisição confirmada." })
+                            break;  
                 default: 
                         res.status(404);
                         res.json({ err: "Status não identificado!" })
@@ -405,166 +466,248 @@ module.exports = {
 
     },
 
-    friendListView(req, res) {
+    friendListViewAll(req, res){
 
-        User.findOne({
+        Userfriend.findOne({
             where: {
-                id: req.query.id
-            }
-        }).then((userv) => {
+                idUserOne: 1
+            },
+            include: [
+                {model: Userfriendcode, attributes: ['statusCode', 'name']},
+                {model: User, attributes: ['id', 'username'], 
+            include: [{model: Userdata, attributes: ['nickname', 'avatar', 'level']}]}
+            ]
+        }).then((resp) => {
+            res.json({ resp })
+        }).catch((err) => {
+            res.json({ err })
+        })
 
-            const uservi = userv.id;
+    },
+    
+    userpostNewPost(req, res) {
 
-            Userfriends.findOne({
-                where: {
-                    idUser: uservi,
-                }
-            }).then((userf) => {
-
-                const userfi = userf.idUser;
-                
-                if(userfi != uservi) {
-                    res.status(400);
-                    res.json({ err: "O Usuário ainda não tem amizades." })
-                } else {
-                    
-                    Userfriends.findAll({
-                        where: {
-                            idUser: uservi
-                        }, 
-                        attributes: ['idFriend', 'status']
-                    }).then((userfr) => {
-                        res.status(200);
-                        res.json({ id_user: uservi, user_friends: userfr })
-                    })
-                }
-
-            }).catch((err) => {
-                res.status(404);
-                res.json({ err: "Erro ao tentar encontrar o ID do Usuário." })
+        User.findOne({ 
+            where: {
+                id: req.body.id
+            },
+            attributes: ['id']
+        }).then((useri) => {
+            
+            Userpost.create({
+                content: req.body.content,
+                userId: useri.id
+            }).then(() => {
+                res.status(200);
+                res.json({ msg: "Post criado!" })
             })
-
         }).catch((err) => {
             res.status(400);
-            res.json({ err: "Usuário não encontrado." })
+            res.json({ err: "Não foi possível encontrar o usuário." })
+        })
+            
+    },
+
+    userpostNewComment(req, res){
+
+        User.findOne({ 
+            where: {
+                id: req.body.id
+            },
+            attributes: ['id']
+        }).then((useri) => {
+
+            Userpost.findOne({
+                where: {
+                    id: req.body.idpost
+                },
+                attributes: ['id']
+            }).then((userp) => {               
+
+                Userpostcomments.create({
+                    content: req.body.content,
+                    userId: useri.id,
+                    userpostId: userp.id
+                }).then(() => {
+                    res.status(200);
+                    res.json({ msg: "Comentário realizado!" })
+                }).catch((err) => {
+                    res.status(400);
+                    res.json({ err: "Não foi possível comentar." })
+                })
+            }).catch((err) => {
+                res.status(400);
+                res.json({ err: "Não foi possível encontrar o usuário." })
+            })
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Não foi possível encontrar o usuário." })
         })
 
     },
 
-    UserFavoriteAddFavorites(req, res){
+    userpostView(req, res){
+
+        User.findOne({ 
+            where: {
+                id: req.query.id
+            },
+            include: [
+                {model: Userpost, attributes: ['id', 'content', 'createdAt'],
+            include:[{model: Userpostcomments, attributes: ['id', 'content', 'createdAt'], 
+            include:[{model: User, attributes: ['id', 'username'], 
+            include: [{model: Userdata, attributes: ['avatar']}]}]}]}
+            ],
+            attributes: ['username']
+        }).then((resp) => {
+            res.status(200);
+            res.json({ resp })
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Não foi possível encontrar os posts deste usuário." })
+        })
+
+    },
+
+    addUserTagsFavorites(req, res){
+        
+        User.findOne({
+            where: {
+                id: req.body.id
+            },
+            attributes: ['id']
+        }).then((useri) => {
+
+            tags.findOne({
+                where: {
+                    id: req.body.tagid
+                },
+                attributes: ['id']
+            }).then((tags) => {
+                
+                Userfavorites.findOne({ 
+                    where: {
+                        tagId: tags.id,
+                        userId: useri.id
+                    },
+                    attributes: ['tagId']
+                }).then((exist) => {
+                    
+                    if(exist) {
+                        res.status(401);
+                        res.json({ msg: "Este usuário já possui esta Tag." })
+                    } else {
+                        Userfavorites.create({
+                            tagId: tags.id,
+                            userId: useri.id
+                        }).then((resp) => {
+                            res.status(200);
+                            res.json({ msg: "Tag adicionada ao Usuário." })
+                        }).catch((err) => {
+                            res.status(400);
+                            res.json({ err: "Falha em adicionar a tag para o Usuário." })
+                        })
+                    }
+                }).catch((err) => {
+                    res.status(400);
+                    res.json({ err: "Falha em comparar a existência da Tag."  })
+                })
+            }).catch((err) => {
+                res.status(400);
+                res.json({ err: "Falha em encontrar a Tag para comparar."})
+            })
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Falha em encontrar o usuário." })
+        })
+    },
+
+    viewUserTagsFavorites(req, res){
+
+        User.findOne({
+            where: {
+                id: req.query.id
+            },
+            include: [{model: Userfavorites, attributes: ['tagId'],
+            include: [{model: Tag, attributes: ['title', 'description']}] }],
+            attributes: ['id']
+        }).then((usertags) => {
+            res.status(200);
+            res.json({ usertags })
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Não foi possível encontrar as Tags do Usuário." })
+        })
+    },
+
+    addUserMedals(req, res){
 
         User.findOne({
             where: {
                 id: req.body.id
             },
-            attributes: [ 'id' ]
+            attributes: ['id']
         }).then((useri) => {
 
-            Userfavorite.findOne({
+            Medals.findOne({
                 where: {
-                    idUser: useri.id
-                }
-            }).then((userfa) => {
-
-                const favorites = {
-                    tag: req.body.tag,
-                    room: req.body.room
-                }
-
-                console.log(favorites + useri.id)
-
-                
-                Userfavorite.update({ 
-                    favoriteTags: favorites.tag,
-                    favoriteRooms: favorites.room
-                }, {
-                    where: {
-                        idUser: userfa.idUser
-                    }
-                })
-
-                res.status(200)
-
-            })
-
-        })
-
-    },
-
-    UserpostNewPost(req, res) {
-
-        User.findOne({ 
-            where: {
-                id: req.body.id
-            }
-        }).then((useri) => {
-
-            UserData.findOne({ 
-                where: {
-                    id: useri.id
+                    id: req.body.medalid
                 },
-                attributes: [ 'id', 'userPosts' ]
-            }).then((userd) => {
+                attributes: ['id']
+            }).then((medals) => {
 
-                Userpost.create({ 
-                    idUser: userd.id,
-                    content: req.body.content
-                })
-
-                const count = userd.userPosts;
-                const newPost = count + 1                
-
-                UserData.update({
-                    userPosts: newPost
-                }, {
+                Usermedals.findOne({ 
                     where: {
-                        id: userd.id
+                        medalId: medals.id,
+                        userId: useri.id
                     }
-                })
+                }).then((exist) => {
 
-                res.status(200);
-                res.json({ msg: "Post de Usuário criado." })
+                    if(exist) {
+                        res.status(401);
+                        res.json({ msg: "Este usuário já possui esta Medalha - Insígnia." })
+                    } else {
+                        Usermedals.create({
+                            medalId: medals.id,
+                            userId: useri.id
+                        }).then((resp) => {
+                            res.status(200);
+                            res.json({ msg: "Medalha - Insígnia adicionado ao Usuário." })
+                        }).catch((err) => {
+                            res.status(400);
+                            res.json({ err: "Falha em adicionar a Medalha - Insígnia ao Usuário." })
+                        })
+                    }
+                }).catch((err) => {
+                    res.status(400);
+                    res.json({ err: "Falha em comparar a existência da Medalha - Insígnia." })
+                })
             }).catch((err) => {
                 res.status(400);
-                res,json({ err: "Falha em encontrar os dados do Usuário." })
+                res.json({ err: "Falha em encontrar a Medalha - Tag para comparar." })
             })
         }).catch((err) => {
             res.status(400);
             res.json({ err: "Falha em encontrar o Usuário." })
         })
-
     },
 
-    UserpostView(req, res){
+    viewUserMedals(req, res){
 
         User.findOne({
             where: {
                 id: req.query.id
             },
-            attributes: ['id', 'username']
-        }).then((useri) => {
-
-            UserData.findOne({
-                where: {
-                    id: useri.id
-                },
-                attributes: ['id']
-            }).then((userd) => {
-
-                Userpost.findAll({
-                    where: {
-                        idUser: userd.id
-                    },
-                    attributes: ['id', 'content', 'createdAt']
-                }).then((userp) => {
-
-                    res.status(200);
-                    res.json({ user: [userd.id, useri.username], user_posts: userp })
-                })
-            })
+            include: [{model: Usermedals, attributes: ['medalId'],
+            include: [{model: Medals, attributes: ['name', 'description', 'img']}]}],
+            attributes: ['id']
+        }).then((usermedals) => {
+            res.status(200);
+            res.json({ usermedals })
+        }).catch((err) => {
+            res.status(400);
+            console.log(err)
         })
-
     }
-
 
 }

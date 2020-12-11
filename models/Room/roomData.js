@@ -1,18 +1,12 @@
 const Sequelize = require('sequelize');
 const db = require('./../../utils/dbConn');
-const RoomPlugins = require('./roomPlugins');
 
-const RoomData = db.define('roomdata', {
-    idMesa: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    idMaster: {
-        type: Sequelize.INTEGER,
-        allowNull: false
-    },
+const Room = require('./room');
+
+const Tag = require('./../tags');
+const User = require('../User/user');
+
+const Roomdata = db.define('roomdata', {
     description: {
         type: Sequelize.STRING,
         allowNull: true
@@ -21,19 +15,45 @@ const RoomData = db.define('roomdata', {
         type: Sequelize.STRING,
         allowNull: true
     },
-    players: {
-        type: Sequelize.STRING,
-        allowNull: true
-    },
-    assistMasters: {
-        type: Sequelize.INTEGER,
-        allowNull: true
+    createdAt: {
+        type: Sequelize.DATE,
+        allowNull: false
+    }
+},{
+    timestamps: false
+})
+
+Roomdata.belongsTo(Room, {
+    foreignKey: {
+        allowNull: false
+    }
+});
+
+Roomdata.belongsTo(Tag, {
+    foreignKey: {
+        allowNull: false
+    }
+});
+
+Roomdata.belongsTo(User, {
+    foreignKey: {
+        allowNull: false
     }
 })
 
-RoomData.associate = (models) => {
-    RoomData.belongsTo(models.room, {foreignKey: 'id', as: 'roomdataid'});
-    RoomPlugins.belongsTo(models.user, {foreignKey: 'id', as: 'roomdatauserid'})
+Roomdata.associate = models => {
+    Roomdata.hasOne(models.Roomdatawikia, {
+        onDelete: "cascade"
+    })
+
+    Roomdata.hasOne(models.Roomplayers, {
+        onDelete: "cascade"
+    })
+
+    Roomdata.hasOne(models.Roomassistmasters, {
+        onDelete: "cascade"
+    })
 }
 
-module.exports = RoomData;
+
+module.exports = Roomdata;

@@ -6,11 +6,10 @@ const cors      = require('cors');
 const conn      = require('./utils/dbConn');
 
 const userRouter        = require('./routes/usersRoute/userroute');
-const premiumRouter     = require('./routes/usersRoute/premiumroute');
-const modRouter         = require('./routes/usersRoute/modroute');
-const adminRouter       = require('./routes/usersRoute/adminroute')
-const articlesRouter    = require('./routes/articlesRoute/articleroute');
+const adminRouter       = require('./routes/usersRoute/adminroute');
+const articlesRouter    = require('./routes/generalRoute/articleroute');
 const roomRouter        = require('./routes/roomRoute/roomroute');
+const reportRouter      = require('./routes/generalRoute/reportroute');
 
 const app = express();
 require('dotenv').config();
@@ -21,10 +20,9 @@ app.use(bp.urlencoded({ extended: true }));
 app.use(bp.json());
 
 app.use('/users',  userRouter);
-app.use('/premium', premiumRouter);
-app.use('/mod', modRouter);
 app.use('/admin',  adminRouter);
 app.use('/articles', articlesRouter);
+app.use('/reports', reportRouter)
 app.use('/room', roomRouter);
 
 app.listen(process.env.API_PORT, () => {

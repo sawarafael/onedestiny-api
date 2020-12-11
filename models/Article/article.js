@@ -1,6 +1,9 @@
 const Sequelize = require('sequelize');
 const db = require('../../utils/dbConn');
 
+const User = require('./../User/user');
+const Tag = require('./../tags');
+
 const Article = db.define('article', {
     id: {
         type: Sequelize.INTEGER,
@@ -16,11 +19,21 @@ const Article = db.define('article', {
         type: Sequelize.STRING,
         allowNull: false
     }
+},
+{
+    timestamps: true
 })
 
-Article.associate = (models) => {
-    Article.belongsTo(models.user, {foreignKey: 'ID', as: 'articleid'});
-    Article.belongsTo(models.tags, {foreignKey: 'ID', as: 'tagsid'});
-}
+Article.belongsTo(User, {
+    foreignKey: {
+        allowNull: false
+    }
+})
+
+Article.belongsTo(Tag, {
+    foreignKey: {
+        allowNull: false
+    }
+})
 
 module.exports = Article;

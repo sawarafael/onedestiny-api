@@ -1,406 +1,345 @@
 const User = require('./../models/User/user');
+const Userfriends = require('./../models/User/userrelationships');
+const Userfavorites = require('./../models/User/userfavorites');
 
 const Room = require('./../models/Room/room');
-const RoomData = require('./../models/Room/roomData');
-const RoomPlugin = require('./../models/Room/roomPlugins');
-const RoomPluginsData = require('./../models/Room/roomPluginsData');
-const RoomPlugins = require('./../models/Room/roomPlugins');
-const RoomPluginData = require('./../models/Room/roomPluginsData');
+const RoomPlugin = require('../models/Room/roomrecords');
+const Roomdata = require('./../models/Room/roomData');
+const Roomplayers = require('./../models/Room/roomplayers');
+
+const Tag = require('./../models/tags');
+const Roomdatawikia = require('../models/Room/roomdatawikia');
+const RoomAssistentMaster = require('../models/Room/roomassistmaster');
+const Userdata = require('../models/User/userdata');
+const Roomrecord = require('../models/Room/roomrecords');
+const Roomrecordinfo = require('../models/Room/roomrecordinfo');
+
+//Algo pertence a algo
+Roomdata.belongsTo(Room, {
+    foreignKey: {
+        allowNull: false
+    }
+})
+
+Roomdatawikia.belongsTo(Room, {
+    foreignKey: {
+        allowNull: false
+    }
+})
+
+Roomplayers.belongsTo(Roomdata, {
+    foreignKey: {
+        allowNull: false
+    }
+})
+
+//Algo possui algo
+Room.hasOne(Roomdata, {
+    onDelete: "cascade",
+    onUpdate: "cascade"
+})
+
+Room.hasOne(Roomdatawikia, {
+    onDelete: "cascade",
+    onUpdate: "cascade"
+})
+
+Roomdata.hasOne(Roomplayers, {
+    onDelete: "cascade",
+    onUpdate: "cascade"
+})
+
+Roomdata.hasOne(RoomAssistentMaster, {
+    onDelete: "cascade",
+    onUpdate: "cascade"
+})
+
+Room.hasMany(Roomrecord, {
+    onDelete: "cascade",
+    onUpdate: "cascade"
+})
+
+Roomrecord.hasOne(Roomrecordinfo, {
+    onDelete: "cascade",
+    onUpdate: "cascade"
+})
 
 
 module.exports = {
 
-    createRoom(req, res) {
-
-
+    createRoom(req, res) {        
+        
         Room.findOne({
             where: {
-                roomName: req.body.roomName
-            }
-        }).then((room) => {
-
-            if(room) {
+                roomName: req.body.roomname,
+            },
+            attributes: ['id', 'roomName']
+        }).then((exist) => {
+            
+            if(exist){
                 res.status(401);
-                res.json({ err: "Já existe uma mesa com este mesmo nome no sistema! "})
-            } else {
+                res.json({ err: "Uma mesa com o mesmo nome já existe." })
+            } else { 
+                
                 User.findOne({
                     where: {
                         id: req.body.id
-                    }, 
-                    attributes: [ 'id', 'username' ]
-                }).then((user) => {
-                
-                    Room.create({
-                        idUser: user.id,
-                        roomName: req.body.roomName,
-                        status: 0
-                    }).then((roomc) => {
-                        res.status(200);
-                        res.json({ msg: "Mesa criada!" })
+                    },
+                    attributes: ['id']
+                }).then((useri) => {
 
-                        RoomData.create({
-                            idMesa: roomc.id,
-                            idMaster: user.id,
+                    Room.create({
+                        roomName: req.body.roomname,
+                        userId: useri.id
+                    }).then((r) => {
+
+                        Roomdata.create({
                             description: req.body.description,
                             avatar: req.body.avatar,
-                            players: null,
-                            assistMasters: null
-                        })
+                            createdAt: req.body.datecreated,
+                            roomId: r.id,
+                            tagId: req.body.tagsid,
+                            userId: useri.id
+                        }).then((rd) => {
 
-                        RoomPlugin.create({
-                            idRoom: roomc.id,
-                            idOwner: user.id,
-                            status: 0,
-                            amount: null
+                            Roomdatawikia.create({
+                                content: null,
+                                images: null,
+                                toRecord: null,
+                                roomId: rd.id
+                            }).then(() => {   
+                                res.status(200);
+                                res.json({ msg: "Mesa criada com sucesso!" })
+                            })
+                        }).catch((err) => {
+                            res.status(400);
+                            res.json({ err: "Não foi possível criar os dados da mesa.", error: err })
                         })
-                    })
+                    }).catch((err) => {
+                        res.status(400);
+                        res.json({ err: "Não foi possível criar a mesa." })
+                    }) 
                 }).catch((err) => {
                     res.status(400);
-                    res.json({ err: "Falha em encontrar o usuário." })
-                })
+                    res.json({ err: "Não foi possível encontrar o usuário." })
+                })   
             }
-        })
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Não foi possível encontrar a mesa." })
+        })        
     },
 
     updateDataRoom(req, res){
 
         Room.findOne({
             where: {
-                id: req.body.idroom
-            }
-        }).then((room) => {
+                id: req.params.idroom
+            },
+            attributes: ['id']
+        }).then((exist) => {
             
-            Room.update({
-                roomName: req.body.newroomname,
-                status: req.body.status
-            }, {
-                where: {
-                    id: room.id
-                }
-            })
+            if(exist) {
 
-            RoomData.update({
-                description: req.body.description,
-                avatar: req.body.avatar
-            }, {
-                where: {
-                    idMesa: room.id
-                }
-            })
+                Room.update({
+                    roomName: req.body.roomname
+                }, {
+                    where: {
+                        id: exist.id
+                    }
+                })
+                Roomdata.update({
+                    description: req.body.description,
+                    avatar: req.body.avatar,
+                }, {
+                    where: {
+                        roomId: exist.id
+                    }
+                })
+                Roomdatawikia.update({
+                    content: req.body.content,
+                    images: req.body.images,
+                    toRecord: req.body.toRecord
+                }, {
+                    where: {
+                        roomId: exist.id
+                    }
+                })
 
-            res.status(200);
-            res.json({ msg: "Informações da Mesa atualizadas!" })
+                res.status(200);
+                res.json({ msg: "Mesa atualizada." })
 
-
-
+            } else {
+                res.status(401);
+                res.json({ err: "Mesa não existe." })
+            }
+            
         }).catch((err) => {
             res.status(400);
-            res.json({ err: "Não foi possível atualizar a mesa." })
-        })  
+            res.json({ err: "Não foi possível encontrar a Mesa." })
+        })
 
     },
 
     seeDataRoom(req, res){
 
+       Room.findOne({
+            where: {
+                id: 1
+            },
+            include: [{model: Roomdata, attributes: ['description', 'avatar']},
+                      {model: Roomdatawikia, attributes: ['content', 'images', 'toRecord']}
+            ],
+            attributes: ['roomName']
+       }).then((rd) => {
+           res.status(200);
+           res.json({ rd });
+       }).catch((err) => {
+           res.status(400);
+           res.json({ err: "Não foi possível encontrar os dados da mesa." });
+       })
+    },
+
+    seeAllRooms(req,res) {
+
         Room.findAll({
-            where: {
-                id: req.body.idroom
-            }, 
-            attributes: [ 'idUser', 'roomName', 'status' ]
-        }).then((room) => {
-
-            RoomData.findAll({
-                where: {
-                    idMesa: req.body.idroom
-                }, 
-                attributes: [ 'idMaster', 'description', 'avatar', 'players', 'assistMasters' ]
-            }).then((roomd) => {
-
-                res.status(200);
-                res.json({ room: room, room_data: roomd })
-            }).catch((err) => {
-                res.status(400);
-                res.json({ err: "Falha em encontrar os dados da mesa." })
-            })
+            include: [{model: Roomdata, attributes: ['description', 'avatar']}],
+            attributes: ['roomName']
+        }).then((ra) => {
+            res.status(200);
+            res.json({ ra })
         }).catch((err) => {
             res.status(400);
-            res.json({ err: "Falha em encontrar a mesa." })
+            res.json({ err: "Não foi possível encontrar as mesas." })
         })
-
     },
 
-    createPluginOwner(req, res){
-
-        User.findOne({
+    seeUserPlayingRooms(req, res){
+        
+        User.findOne({ 
             where: {
-                id: req.body.iduser
-            },
-            attributes: ['id']
-        }).then((useri) => {
-            Room.findOne({
-                where:  {
-                    idUser: useri.id
-                }
-            }).then((room) => {
-
-                const one = 1;
-                m = one + 1;
-
-                RoomPlugin.update({
-                    status: 1,
-                    amount: m
-                }, {
-                    where: {
-                        idOwner: room.id
-                    }
-                }).then((att) => {
-
-                    RoomPluginsData.create({
-                        idOwner: room.idUser,
-                        idRoom: room.id,
-                        title: null,
-                        content: null
-                    })
-
-                    res.status(200);
-                    res.json({ msg: "Adicionado mais uma ficha para o Mestre - NPC" })
-                })
-            }).catch((err) => {
-                res.status(400);
-                res.json({ err: "Erro em adicionar mais uma ficha para o Mestre - NPC" })
-            })  
-        }).catch((err) => {
-            res.status(400);
-            res.json({ err: "Erro em encontrar o usuário na Bancada de Ficha." })
-        })       
-
-    },
-
-    createPluginPlayer(req, res) {
-
-        User.findOne({
-            where: {
-                id: req.body.iduser
+                id: req.query.id
             },
             attributes: ['id']
         }).then((useri) => {
 
-            RoomPlugins.findOne({
+            Roomplayers.findAll({
                 where: {
-                    idRoom: req.body.idroom,
-                    idOwner: req.body.iduser
-                }, 
-                attributes: [ 'idRoom', 'idOwner' ]
-            }).then((room) => {
-
-                if(room){
-                    res.status(401);
-                    res.json({ err: "Este usuário já tem uma bancada de fichas nessa mesa" })
-                } else {
-                    RoomPlugin.create({
-                        idRoom: req.body.idroom,
-                        idOwner: useri.id,
-                        status: 0,
-                        amount: 1                
-                    }).then((resukt) => {
-                        RoomPluginsData.create({                            
-                            idRoom: req.body.idroom,
-                            idOwner: resukt.idOwner,
-                            title: null,
-                            content: null
-                        })
-                        res.status(200);
-                        res.json({ msg: "Ficha para Player criada!" })
-                    })
-                }
-            }).catch((err) => {
-                res.status(400);
-                res.json({ err: "Erro em encontrar a Mesa." })
-            })
-
-        })
-
-    },
-
-    seePlugins(req, res){
-
-        RoomPlugin.findAll({
-            where: {
-                idRoom: req.body.idroom
-            },
-            attributes: [ 'idOwner', 'idRoom', 'status' ]
-        }).then((roomp) => {
-
-            RoomPluginData.findAll({                
-                attributes: [ 'idRoom', 'title', 'content' ]
-            }).then((roompd) => {
-                res.status(200);
-                res.json({ plugin_major: roomp, plugin_content: roompd })
-            })
-
-        }).catch((err) => {
-            res.status(400);
-            res.json({ err: "Não foi possível encontrar a mesa." })
-        })
-
-    },
-
-    updatePluginPlayer(req, res){
-
-        User.findOne({
-            where: {
-                id: req.body.iduser
-            },
-            attributes: ['id']
-        }).then((user) => {
-
-            RoomPlugins.findOne({
-                where: {
-                    idOwner: req.body.iduser
+                    userId: useri.id
                 },
-                attributes: ['idOwner']
-            }).then((roomd) => {
+                include: [{model: Roomdata, attributes: ['description', 'avatar'], 
+                include: [{model: Room, attributes: ['roomName']}]}]
+            }).then((find) => {
+                res.status(200);
+                res.json({ find })
+            }).catch((err) => {
+                res.status(400)
+                res.json({ err: "Não foi possível encontrar as mesas." })
+            })
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Não foi possível encontrar o usuário." })
+        })
+    },
 
-                RoomData.findOne({
-                    attributes: [ 'idMesa', 'idMaster' ]
-                }).then((rest) => {
+    seeUserFriendRooms(req, res){
 
-                
-                    if(roomd.idOwner == rest.idMaster) {
-                        res.status(401);
-                        res.json({ err: "Não é jogador desta sala de RPG!" })
-                    } else {
-                        RoomPlugin.update({
-                            status: 1
-                        }, {
-                            where: {
-                                idRoom: rest.idMesa
-                            }
-                        })
-                        RoomPluginData.update({
-                            title: req.body.title,
-                            content: req.body.content
-                        }, {
-                            where: {
-                                idRoom: rest.idMesa
-                            }
-                        })
-
-                        res.status(200);
-                        res.json({ msg: "Ficha atualizada." })
-                    }
-                }).catch((err) => {
-                    res.status(400);
-                    console.log("Erro de Comparação")
-                })
+        Userfriends.findOne({            
+            where: {
+                idUserOne: req.query.id
+            },
+            include: [{model: User, attributes: ['username']}],
+            attributes: ['idUserTwo']
+        }).then((find) => {
+            
+            Room.findAll({
+                where: {
+                    userId: find.idUserTwo
+                },
+                include: [{model: Roomdata, attributes: ['description', 'avatar']},
+                          {model: User, attributes: ['id', 'username']}],
+                attributes: ['roomName']
+            }).then((findr) => {
+                res.status(200);
+                res.json({ findr });
             }).catch((err) => {
                 res.status(400);
-                console.log("Erro em encontrar o dono da ficha")
+                res.json({ err: "Não foi possível encontrar as mesas - ou o tal amigo não possui ainda." })
             })
-        }).catch(() => {
+        }).catch((err) => {
             res.status(400);
-            console.log("Erro em encontrar o usuário")
+            res.json({ err: "Não foi possível encontrar o amigo do usuário." })
         })
 
     },
 
-    updatePluginOwner(req, res) {
+    seeUserTagsRooms(req, res){
 
+        User.findOne({
+            where: {
+                id: req.query.id
+            }, 
+            include: [{model: Userfavorites, attributes: ['tagId']}],
+            attributes: ['id']
+        }).then((find) => {
+                        
+            Roomdata.findAll({
+                where: {
+                    tagId: find.userfavorites.map(x => x.tagId)
+                },
+                include: [{model: Room, attributes: ['roomName']}],
+                attributes: ['description', 'avatar']
+            }).then((findm) => {
+                res.json({ findm })
+            })
+
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Não foi possível encontrar o usuário." })
+        })        
+    },
+    
+    addPlayer(req, res){
         
         User.findOne({
             where: {
-                id: req.body.iduser
+                id: req.params.iduser
             },
             attributes: ['id']
-        }).then((user) => {
+        }).then((useri) => {
+            
+            if(useri){
+                Room.findOne({
+                    where: {
+                        id: req.params.idroom
+                    },
+                    include: [{model: Roomdata, attributes: ['id']}],
+                    attributes: ['id']
+                }).then((find) => {
 
-            RoomPlugins.findOne({
-                where: {
-                    idOwner: req.body.iduser
-                },
-                attributes: ['idOwner']
-            }).then((roomd) => {
-
-                RoomData.findOne({
-                    attributes: [ 'idMesa', 'idMaster' ]
-                }).then((rest) => {
-
-                
-                    if(roomd.idOwner == rest.idMaster) {
-                        RoomPluginData.update({
-                            title: req.body.title,
-                            content: req.body.content
-                        }, {
-                            where: {
-                                idRoom: rest.idMesa
-                            }
-                        })
-                        
+                    Roomplayers.create({
+                        userId: useri.id,
+                        roomdatumId: find.roomdatum.id,
+                        roomplacecodeId: 1
+                    }).then(() => {
                         res.status(200);
-                        res.json({ msg: "Ficha atualizada." })
-                    } else {
-                        res.status(401);
-                        res.json({ err: "Não é o mestre desta sala de RPG!" })
-                    }
+                        res.json({ msg: "Novo player adicionado para esta mesa." })
+                    }).catch((err) => {
+                        res.status(400);
+                        res.json({ error: err, fail: "Falha em adicionar o player para esta mesa." })
+                    })
                 }).catch((err) => {
                     res.status(400);
-                    console.log("Erro de Comparação")
+                    res.json({ err: "Falha em encontrar a mesa." })
                 })
-            }).catch((err) => {
-                res.status(400);
-                console.log("Erro em encontrar o dono da ficha")
-            })
-        }).catch(() => {
+            } else {
+                res.status(401);
+                res.json({ err: "Usuário fantasma?" })
+            }
+        }).catch((err) => {
             res.status(400);
-            console.log("Erro em encontrar o usuário")
+            res.json({ err: "Falha em encontrar o usuário." })
         })
-
-    },
-
-    removePlugin(req, res){
-
-
-        User.findOne({
-            where: {
-                id: req.body.iduser
-            },
-            attributes: [ 'id' ]
-        }).then((useri) => {
-
-            RoomPlugins.findOne({
-                where: {
-                    idOwner: useri.id
-                },
-                attributes: [ 'idOwner', 'amount' ]
-            }).then((rrio) => {
-                
-                RoomPluginData.destroy({
-                    where: {
-                        idOwner: rrio.idOwner
-                    }
-                })
-
-                const minus = -1;                
-
-                RoomPlugin.update({
-                    amount: minus
-                }, 
-                {
-                    where: {
-                        idOwner: useri.id
-                    }
-                })
-            })
-
-            res.status(200);
-            res,json({ msg: "Ficha destruída!" })
-        }).then((err) => {
-            res.status(400);
-            res.json({ err: "Erro ao Encontrar o usuário." })
-        })
-
-
-       
 
     },
 
@@ -408,75 +347,198 @@ module.exports = {
 
         User.findOne({
             where: {
-                id: req.body.iduser
+                id: req.params.iduser
             },
             attributes: ['id']
         }).then((useri) => {
-
-            RoomData.findOne({
-                where: {
-                    idMesa: req.body.idroom
-                }
-            }).then((roomd) => {
-
-                if(roomd) {
-                    
-                    RoomData.update({
-                        assistMasters: useri.id
-                    }, {
-                        where: {
-                            idMesa: roomd.idMesa
-                        }
+            
+            if(useri){
+                Room.findOne({
+                    where: {
+                        id: req.params.idroom
+                    },
+                    include: [{model: Roomdata, attributes: ['id']}],
+                    attributes: ['id']
+                }).then((find) => {
+                    RoomAssistentMaster.create({
+                        userId: useri.id,
+                        roomdatumId: find.roomdatum.id,
+                        roomplacecodeId: 1
                     })
-
                     res.status(200);
-                    res.json({ msg: "Mestre Auxiliar adicionado!" })
-                } else {
-                    res.status(404);
-                    res.json({ err: "Erro em adicionar o Mestre Auxiliar!" })
-                }
-            }) 
-
+                    res.json({ msg: "O usuário é Mestre Assistente dessa Sala de Rpg."})
+                }).catch((err) => {
+                    res.status(400);
+                    res.json({ err: "Falha em encontrar a mesa." })
+                })
+            } else {
+                res.status(401);
+                res.json({ err: "Usuário fantasma?" })
+            }
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Falha em encontrar o usuário." })
         })
-
     },
 
-    addPlayer(req, res){
+    seePlayersAndAssists(req, res){
 
-        
-        User.findOne({
+        Roomdata.findAll({
             where: {
-                id: req.body.iduser
+                roomId: req.query.idroom
             },
-            attributes: ['username']
-        }).then((useri) => {
-
-            RoomData.findOne({
-                where: {
-                    idMesa: req.body.idroom
-                }
-            }).then((roomd) => {
-
-                if(roomd) {
-                    
-                    RoomData.update({
-                        players: useri.username
-                    }, {
-                        where: {
-                            idMesa: roomd.idMesa
-                        }
-                    })
-                    res.status(200);
-                    res.json({ msg: "Jogador adicionado!" })
-                } else {
-                    res.status(404);
-                    res.json({ err: "Erro em adicionar o Jogador!" })
-                }
-            }) 
-
+            include: [{model:Roomplayers, attributes:['userId'],
+            include:[{model:User, attributes: ['username'],
+            include: [{model: Userdata, attributes: ['nickname', 'avatar']}]}]},
+            {model: RoomAssistentMaster, attributes: ['userId'], 
+            include: [{model: User, attributes: ['username'], 
+            include: [{model: Userdata, attributes: ['nickname', 'avatar']}]}]}
+        ],
+        attributes: ['id']
+        }).then((findpa) => {
+            res.status(200);
+            res.json({ findpa })
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Não foi possível encontrar os mestres auxiliares ou jogadores desta mesa." })
         })
 
     },
 
+    addRecord(req, res){
+
+        User.findOne({ 
+            where: {
+                id: req.body.id
+            },
+            attributes: ['id']
+        }).then((useri) => {
+            
+                Room.findOne({
+                    where: {
+                        id: req.body.idroom
+                    },
+                    attributes: ['id']
+                }).then((rexist) => {                    
+                    
+                        if(!rexist) {
+                            res.status(401);
+                            res.json({ err: "Esta mesa não existe!" });
+                        } else {                            
+                            Roomrecord.create({
+                                userId: useri.id,
+                                roomId: rexist.id
+                            }).then((rr) => {
+                                Roomrecordinfo.create({
+                                    roomrecordIdRecord: rr.idRecord,
+                                    title: req.body.title,
+                                    content: null,
+                                    lelelCharacter: null,
+                                    barOne: null,
+                                    barTwo: null,
+                                    barThree: null,
+                                    barFour: null,
+                                    barFive: null,
+                                    CharacterPhrase: null
+                                }).then(() => {
+                                    res.status(200);
+                                    res.json({ msg: "Ficha para o usuário na tal mesa foi criada." })
+                                }).catch((err) => {
+                                    res.status(400);
+                                    res.json({ err: "Não foi possível criar a ficha para o usuário." })
+                                })
+                            }).catch((err) => {
+                                res.status(400);
+                                res.json({ err: "Falha em criar a ficha do usuário." })
+                            })
+                        }                    
+                    }).catch((err) => {
+                        res.status(400);
+                        res.json({ err: "Não foi possível encontrar a Mesa." })
+                    })
+                }).catch((err) => {
+                    res.status(400);
+                    res.json({ err: "Não foi possível encontrar o Usuário" })
+                })
+    },
+
+    updateRecordInfo(req, res){
+        
+        User.findOne({ 
+            where: {
+                id: req.body.id
+            },
+            attributes: ['id']
+        }).then((useri) => {
+            
+                Room.findOne({
+                    where: {
+                        id: req.body.idroom
+                    },
+                    attributes: ['id']
+                }).then((rexist) => {                    
+                    
+                        if(!rexist) {
+                            res.status(401);
+                            res.json({ err: "Esta mesa não existe!" });
+                        } else {          
+                            Roomrecord.findOne({
+                                where: {
+                                    idRecord: req.body.idrecord
+                                },
+                                attributes: ['idRecord']
+                            }).then((find) => {
+                                Roomrecordinfo.update({
+                                    title: req.body.title,
+                                    content: req.body.content,
+                                    levelCharacter: req.body.levelcharacter,
+                                    barOne: req.body.barone,
+                                    barTwo: req.body.bartwo,
+                                    barThree: req.body.barthree,
+                                    barFour: req.body.barfour,
+                                    barFive: req.body.barfive,
+                                    CharacterPhrase: req.body.characterphrase
+                                },{
+                                    where: {
+                                        roomrecordIdRecord: find.idRecord
+                                    }
+                                }).then(() => {
+                                    res.status(200);
+                                    res.json({ msg: "Ficha atualizada." })
+                                })
+                            }).catch((err) => {
+                                res.status(400);
+                                res.json({ err: "Não foi possível encontrar a ficha." })
+                            })
+                        }
+                    }).catch((err) => {
+                        res.status(400);
+                        res.json({ err: "Não foi possível encontrar a mesa." })
+                    })
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Não foi possível encontrar o usuário."})
+        })
+    },
+
+    viewRecords(req, res){
+        
+        Room.findOne({
+            where: {
+                id: req.query.id
+            },
+            include: [{model: Roomrecord, attributes: ['roomId', 'userId'], 
+            include: [{model: Roomrecordinfo},
+                      {model: User, attributes: ['id','username']}]}],
+            attributes: ['id', 'roomName']
+        }).then((find) => {
+            res.status(200);
+            res.json({ find })
+        }).catch((err) => {
+            res.status(400);
+            console.log(err)
+        })
+
+    },
 
 }
