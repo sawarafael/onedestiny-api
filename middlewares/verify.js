@@ -14,11 +14,11 @@ module.exports = {
 
         jwt.verify(token, process.env.JWT_SECRET_TOKEN_ADMIN, (err, data) => {
             if(err) {
-                jwt.verify(token, process.env.JWT_SECRET_TOKEN_USER, (err, data) => {
+                jwt.verify(token, process.env.JWT_SECRET_TOKEN_MOD, (err, data) => {
                     if(err) {
                         jwt.verify(token, process.env.JWT_SECRET_TOKEN_PREMIUM, (err, data) => {
                             if(err) {
-                                jwt.verify(token, process.env.JWT_SECRET_TOKEN_MOD, (err, data) => {
+                                jwt.verify(token, process.env.JWT_SECRET_TOKEN_USER, (err, data) => {
                                     if(err) {
                                         console.log(err)
                                     } else {
