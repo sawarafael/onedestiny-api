@@ -25,7 +25,7 @@ app.use('/articles', articlesRouter);
 app.use('/reports', reportRouter)
 app.use('/room', roomRouter);
 
-app.listen(process.env.API_PORT, () => {
+app.listen(process.env.PORT, () => {
     console.log(co.yellow(`\n API rodando no endereço: ` + co.bold(`http://localhost:${process.env.API_PORT}`)
     + `\n Inicializando Módulos: \n`))
 })  
