@@ -5,6 +5,8 @@ const cors      = require('cors');
 
 const conn      = require('./utils/dbConn');
 
+const config    = require('./configs/configs');
+
 const userRouter        = require('./routes/usersRoute/userroute');
 const adminRouter       = require('./routes/usersRoute/adminroute');
 const articlesRouter    = require('./routes/generalRoute/articleroute');
@@ -29,8 +31,8 @@ app.get('/', (req, res) => {
     res.send("Bem vindo a esta página. :3")
 })
 
-app.listen(process.env.PORT, () => {
-    console.log(co.yellow(`\n API rodando no endereço: ` + co.bold(`http://localhost:${process.env.PORT}`)
+app.listen(config.PORT, () => {
+    console.log(co.yellow(`\n API rodando no endereço: ` + co.bold(`http://localhost:${config.PORT}`)
     + `\n Inicializando Módulos: \n`))
 })  
 

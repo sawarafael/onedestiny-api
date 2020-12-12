@@ -1,8 +1,10 @@
 const Sequelize     = require('sequelize');
-require('dotenv').config();
+//require('dotenv').config();
 
-const connection = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASS, {
-    host: process.env.DB_HOST,
+const config = require('./../configs/configs')
+
+const connection = new Sequelize(config.DB_NAME, config.DB_USER, config.DB_PASS, {
+    host: config.DB_HOST,
     dialect: 'mysql',
     logging: true
 });

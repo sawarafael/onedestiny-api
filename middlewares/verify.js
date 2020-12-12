@@ -1,10 +1,12 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-module.exports = {
+const config = require('./../configs/configs')
+module.exports = {    
 
-    Auth(req, res, next) {
-        
+    Auth(req, res, next) {  
+
+      
     const authToken = req.headers['authorization'];
 
     if(authToken != undefined) {
@@ -12,13 +14,13 @@ module.exports = {
         const bearer = authToken.split(' ');
         var token = bearer[1]; 
 
-        jwt.verify(token, process.env.JWT_SECRET_TOKEN_ADMIN, (err, data) => {
+        jwt.verify(token, config.JWT_SECRET_TOKEN_ADMIN, (err, data) => {
             if(err) {
-                jwt.verify(token, process.env.JWT_SECRET_TOKEN_MOD, (err, data) => {
+                jwt.verify(token, config.JWT_SECRET_TOKEN_MOD, (err, data) => {
                     if(err) {
-                        jwt.verify(token, process.env.JWT_SECRET_TOKEN_PREMIUM, (err, data) => {
+                        jwt.verify(token, config.JWT_SECRET_TOKEN_PREMIUM, (err, data) => {
                             if(err) {
-                                jwt.verify(token, process.env.JWT_SECRET_TOKEN_USER, (err, data) => {
+                                jwt.verify(token, config.JWT_SECRET_TOKEN_USER, (err, data) => {
                                     if(err) {
                                         console.log(err)
                                     } else {

@@ -19,6 +19,11 @@ const Medals = require('../models/Medals');
 const Userpostcomments = require('./../models/User/userpostcomments');
 const Tag = require('./../models/tags');
 
+const JWT_SECRET_TOKEN_USER =       "gX1IXdY7aVWol1pS4T2Xjg1";
+const JWT_SECRET_TOKEN_MOD=         "9BLhrpsc-z4FavRKH6BVUg";
+const JWT_SECRET_TOKEN_PREMIUM=     "gX1IXdY7aVWol1pS4T2Xjg2";
+const JWT_SECRET_TOKEN_ADMIN=       "MiySQzMg3d8YnEMwHfbgJQ";
+
 //Pertence ao User
 Userdata.belongsTo(User, {
     allowNull: false
@@ -187,7 +192,7 @@ module.exports = {
                                                     
                                                     if(userro.roleId == 1) {
                                                         JWT.sign({ id: userAuth.id, username: userAuth.username }, 
-                                                        process.env.JWT_SECRET_TOKEN_USER, {expiresIn: '48h'}, (err, token) => {
+                                                        JWT_SECRET_TOKEN_USER, {expiresIn: '48h'}, (err, token) => {
                                                             if(err){
                                                                 res.status(400);
                                                                 res.json({err: "Falha Interna - Falha em processar o Token - User."})
@@ -198,7 +203,7 @@ module.exports = {
                                                         })
                                                     } else if(userro.roleId == 2) {
                                                         JWT.sign({ id: userAuth.id, username: userAuth.username }, 
-                                                        process.env.JWT_SECRET_TOKEN_PREMIUM, {expiresIn: '48h'}, (err, token) => {
+                                                        JWT_SECRET_TOKEN_PREMIUM, {expiresIn: '48h'}, (err, token) => {
                                                             if(err){
                                                                 res.status(400);
                                                                 res.json({err: "Falha Interna - Falha em processar o Token - Premium."})
@@ -209,7 +214,7 @@ module.exports = {
                                                         })
                                                     } else if(userro.roleId == 4) {
                                                         JWT.sign({ id: userAuth.id, username: userAuth.username }, 
-                                                        process.env.JWT_SECRET_TOKEN_ADMIN, {expiresIn: '48h'}, (err, token) => {
+                                                        JWT_SECRET_TOKEN_ADMIN, {expiresIn: '48h'}, (err, token) => {
                                                             if(err){
                                                                 res.status(400);
                                                         res.json({err: "Falha Interna - Falha em processar o Token - Administrador"})
@@ -220,7 +225,7 @@ module.exports = {
                                                 })
                                             } else if(userro.roleId == 3) {
                                                 JWT.sign({ id: userAuth.id, username: userAuth.username }, 
-                                                    process.env.JWT_SECRET_TOKEN_MOD, {expiresIn: '48h'}, (err, token) => {
+                                                    JWT_SECRET_TOKEN_MOD, {expiresIn: '48h'}, (err, token) => {
                                                     if(err){
                                                         res.status(400);
                                                         res.json({err: "Falha Interna - Falha em processar o Token - Moderador"})
