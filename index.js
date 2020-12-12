@@ -39,3 +39,11 @@ conn
 }).catch((err) => {
     console.log(err);
 })
+
+conn
+    .sync({
+        logging: console.log,
+        force: true
+    }).catch((err) => {
+        console.log(err)
+    })
