@@ -25,6 +25,10 @@ app.use('/articles', articlesRouter);
 app.use('/reports', reportRouter)
 app.use('/room', roomRouter);
 
+app.get('/', (req, res) => {
+    res.send("Bem vindo a esta página. :3")
+})
+
 app.listen(process.env.PORT, () => {
     console.log(co.yellow(`\n API rodando no endereço: ` + co.bold(`http://localhost:${process.env.PORT}`)
     + `\n Inicializando Módulos: \n`))
@@ -39,11 +43,3 @@ conn
 }).catch((err) => {
     console.log(err);
 })
-
-conn
-    .sync({
-        logging: console.log,
-        force: true
-    }).catch((err) => {
-        console.log(err)
-    })
