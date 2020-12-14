@@ -10,8 +10,7 @@ module.exports = {
     
     DB_NAME:     "oddb",
     DB_USER:     "root",
-    DB_PASS:     "oneDestinyDB1d@",
+    DB_PASS:     "Sawada01",
     DB_HOST:     "localhost",
-
-
+    
 }

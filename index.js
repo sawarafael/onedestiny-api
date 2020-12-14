@@ -2,6 +2,8 @@ const express   = require('express');
 const bp        = require('body-parser');
 const co        = require('colors');
 const cors      = require('cors');
+const helmet    = require('helmet');
+const https     = require('https');
 
 const conn      = require('./utils/dbConn');
 
@@ -21,6 +23,8 @@ app.use(cors());
 app.use(bp.urlencoded({ extended: true }));
 app.use(bp.json());
 
+app.use(helmet());
+
 app.use('/users',  userRouter);
 app.use('/admin',  adminRouter);
 app.use('/articles', articlesRouter);
@@ -31,7 +35,9 @@ app.get('/', (req, res) => {
     res.send("Bem vindo a esta página. :3")
 })
 
-app.listen(config.PORT, () => {
+const ODServer = https.createServer({key: key, cert: cert}, app)
+
+ODServer.listen(config.PORT, () => {
     console.log(co.yellow(`\n API rodando no endereço: ` + co.bold(`http://localhost:${config.PORT}`)
     + `\n Inicializando Módulos: \n`))
 })  

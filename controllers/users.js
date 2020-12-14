@@ -188,8 +188,6 @@ module.exports = {
                                                     attributes: ['id', 'permission']
                                                 }).then((role) => {
                                                     
-                                                    console.log(role.id)
-                                                    
                                                     if(userro.roleId == 1) {
                                                         JWT.sign({ id: userAuth.id, username: userAuth.username }, 
                                                         JWT_SECRET_TOKEN_USER, {expiresIn: '48h'}, (err, token) => {
