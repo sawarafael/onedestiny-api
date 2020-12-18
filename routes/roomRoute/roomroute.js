@@ -22,5 +22,9 @@ RoomRoute.post('/add/record', users.Auth, room.addRecord);
 RoomRoute.patch('/update/record', users.Auth, room.updateRecordInfo);
 RoomRoute.get('/view/all/record', users.Auth, room.viewRecords);
 
+RoomRoute.post('/add/file', users.Auth, room.createRoomFiles);
+RoomRoute.patch('/update/file', users.Auth, room.updateRoomFiles);
+RoomRoute.get('/view/file', users.Auth, room.viewRoomFiles);
+
 
 module.exports = RoomRoute;

@@ -3,7 +3,8 @@ const bp        = require('body-parser');
 const co        = require('colors');
 const cors      = require('cors');
 const helmet    = require('helmet');
-const https     = require('https');
+// const https     = require('https');
+// const fs        = require('fs');
 
 const conn      = require('./utils/dbConn');
 
@@ -35,9 +36,9 @@ app.get('/', (req, res) => {
     res.send("Bem vindo a esta página. :3")
 })
 
-const ODServer = https.createServer({key: key, cert: cert}, app)
+// const ODServer = https.createServer({key: key, cert: cert}, app)
 
-ODServer.listen(config.PORT, () => {
+app.listen(config.PORT, () => {
     console.log(co.yellow(`\n API rodando no endereço: ` + co.bold(`http://localhost:${config.PORT}`)
     + `\n Inicializando Módulos: \n`))
 })  

@@ -1,6 +1,6 @@
 # API - One Destiny
 
-### 2.0.0v — **ARRv**
+### 2.0.1v — **ARRv**
 
 API destinado para uso do aplicativo *ONE DESTINY*, este Readme será destinado para especificar quais rotas estão sendo trabalhadas e como usa-las nos aplicativos Mobile e Desktop. 
 
@@ -14,6 +14,8 @@ Rotas implementadas:
 6. [x] Reporte de Absusos
 
 ## Atualização Recente
+
++Adicionado Rota de Arquivos de Mesa
 
 ##### +Atualização na API — A Railgun Request.
 

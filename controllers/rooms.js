@@ -13,6 +13,7 @@ const RoomAssistentMaster = require('../models/Room/roomassistmaster');
 const Userdata = require('../models/User/userdata');
 const Roomrecord = require('../models/Room/roomrecords');
 const Roomrecordinfo = require('../models/Room/roomrecordinfo');
+const Roomfile = require('../models/Room/roomfile');
 
 //Algo pertence a algo
 Roomdata.belongsTo(Room, {
@@ -55,6 +56,11 @@ Roomdata.hasOne(RoomAssistentMaster, {
 })
 
 Room.hasMany(Roomrecord, {
+    onDelete: "cascade",
+    onUpdate: "cascade"
+})
+
+Room.hasMany(Roomfile, {
     onDelete: "cascade",
     onUpdate: "cascade"
 })
@@ -541,4 +547,75 @@ module.exports = {
 
     },
 
+    createRoomFiles(req, res){
+
+        Room.findOne({
+            where: {
+                id: req.body.idroom
+            },
+            attributes: ['id']
+        }).then((rexist) => {
+            
+            Roomfile.create({
+                title: req.body.title,
+                content: req.body.content,
+                roomId: rexist.id
+            }).then(() => {
+                res.status(200);
+                res.json({ msg: "Arquivo para mesa criado com sucesso!" });
+            }).catch((err) => {
+                res.status(400);
+                res.json({ err: "Não foi possível criar um arquivo para esta mesa." })
+            })
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Não foi possível encontrar a mesa." })
+        })
+    },
+
+    updateRoomFiles(req, res){
+        
+        Room.findOne({
+            where: {
+                id: req.body.idroom
+            },
+            attributes: ['id']
+        }).then((rexist) => {
+            Roomfile.update({
+                title: req.body.title,
+                content: req.body.content
+            }, {
+                where: {
+                    roomId: rexist.id
+                }
+            }).then(() => {
+                res.status(200);
+                res.json(({ msg: "Arquivo desta mesa atualizada." }))
+            }).catch((err) => {
+                res.status(400);
+                res.json({ msg: "Não foi possível atualizar o arquivo desta mesa." })
+            })
+        }).catch(() => {
+            res.status(400);
+            res.json({ err: "Não foi possível encontrar a mesa." })
+        })
+    },
+
+    viewRoomFiles(req, res){
+
+        Room.findOne({
+            where: {
+                id: req.query.file
+            },
+            include: [{model: Roomfile, attributes: ['title', 'content']}],
+            attributes: ['id']
+        }).then((rexist) => {
+            res.status(200);
+            res.json({ rexist })
+        }).catch((err) => {
+            res.status(400);
+            console.log(err)
+            res.json({ err: "Não foi possível encontrar os arquivos desta mesa.", error: err })
+        })
+    }
 }
