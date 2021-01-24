@@ -1,7 +1,10 @@
+const { Op } = require("sequelize");
+
 const User = require('./../models/User/user');
 const Userdata = require('./../models/User/userdata');
 const Userrole = require('./../models/User/userrole');
 const Userfriend = require('./../models/User/userrelationships');
+const Userbfriend = require('./../models/User/userrelationshipsbest');
 const Userfriendcode = require('./../models/User/userrelationshipstatus');
 const Userfavorites = require('./../models/User/userfavorites');
 const Usermedals = require('./../models/User/usermedals');
@@ -249,7 +252,7 @@ module.exports = {
                                     res.json({ err: "Usuário inexistente ou não foi possível encontrar seu dado." })
                                 })
                     } else {
-                        res.status(404)
+                        res.status(401)
                         res.json({ error: "Senha inválida."});
                     }
                     });
@@ -257,6 +260,10 @@ module.exports = {
         }).catch((err) => {
             console.log("Erro em achar o usuário! " +err)
         })
+
+    },
+
+    passwordChange(req, res){
 
     },
 
@@ -333,7 +340,7 @@ module.exports = {
 
     },
 
-    friendListRequest(req, res) {
+    friendRequest(req, res) {
 
         User.findOne({
             where: {
@@ -345,7 +352,8 @@ module.exports = {
             if(uservo) { 
                 User.findOne({
                     where: {
-                        id: req.body.id2
+                        id: req.body.id2,
+                        username: req.body.username
                     },
                     attributes: ['id']
                 }).then((uservt) => {
@@ -354,8 +362,16 @@ module.exports = {
 
                         Userfriend.findOne({
                             where: {
-                                idUserOne: uservo.id,
-                                idUserTwo: uservt.id
+                                [Op.or] : [
+                                    {
+                                        idUserOne: uservo.id,
+                                        idUserTwo: uservt.id
+                                    },
+                                    {
+                                        idUserTwo: uservo.id,
+                                        idUserOne: uservt.id
+                                    }
+                                ]
                             }
                         }).then((exist) => {
                             if(exist) {
@@ -370,14 +386,14 @@ module.exports = {
                                     res.status(200);
                                     res.json({ msg: "Requisição de Amizade realizada!" })
                                 }).catch((err) => {
-                                    res.json({ err })
+                                    res.json({ err: "Não foi possível criar a requisição de amizade" })
                                 })
                             }
                         }).catch((err) => {
                             res.status(400);
-                            res.json({ err: "Erro em encontrar as Amizades" })
+                            res.json({ err: "Não foi possível encontrar estas Amizades" })
                         })                        
-                    }else {
+                    } else {
                         res.status(401);
                         res.json({ err: "Não foi possível confirmar o usuário requisitado." })
                     }
@@ -391,23 +407,258 @@ module.exports = {
             }
         }).catch((err) => {
             res.status(400);
-            res.json({ err: "Não foi possível encontrar o usuário requisitado." })
+            res.json({ err: "Não foi possível encontrar o usuário requerente." })
         })
     },
 
-    friendListUpdate(req, res) {
+    bestFriendRequest(req, res){
+        User.findOne({
+            where: {
+                id: req.body.id1
+            },
+            attributes: ['id']
+        }).then((uservo) => {
+            if(uservo) {
+                User.findOne({
+                    where:{ 
+                        id: req.body.id2
+                    },
+                    attributes: ['id']
+                }).then((uservt) => {
+                    if(uservt) {
+                        Userbfriend.findOne({
+                            where: {
+                                [Op.or] : [
+                                    {
+                                        idUserOne: uservo.id,
+                                        idUserTwo: uservt.id
+                                    },
+                                    {
+                                        idUserTwo: uservo.id,
+                                        idUserOne: uservt.id
+                                    }
+                                ]
+                            }
+                        }).then((exist) => {
+                            if(exist) {
+                                res.status(401);
+                                res.json({ err: "Este relacionamento melhorado já existe" })
+                            } else {
+                                Userbfriend.create({
+                                    idUserOne: uservo.id,
+                                    idUserTwo: uservt.id,
+                                    statusCode: 3
+                                }).then((r) => {
+                                    Userfriend.update({
+                                        statusCode: 3
+                                    }, {
+                                        where: {
+                                            [Op.or] : [
+                                                {
+                                                    idUserOne: uservo.id,
+                                                    idUserTwo: uservt.id
+                                                },
+                                                {
+                                                    idUserTwo: uservt.id,
+                                                    idUserOne: uservo.id
+                                                }
+                                            ]
+                                        }
+                                    }).then((rs) => {
+                                        res.status(200)
+                                        res.json({ msg: "Requisição de melhor amizade realizada!" })
+                                    }).catch((err) => {
+                                        res.status(400);
+                                        res.json({ err: "Não foi possível atualizar a lista de amigos deste usuário"})
+                                    })
+                                }).catch((err) => {
+                                    res.status(200)
+                                    res.json({ err: "Não foi possível criar a requisição de melhor amizade" })
+                                })
+                            }
+                        }).catch((err) => {
+                            res.status(400);
+                            res.json({ err: "Não foi possível encontrar estas Melhores Amizades" })
+                        })
+                    } else {
+                        res.status(400)
+                        res.json({ err: "Não foi possível confirmar o usuário requerido" })
+                    }
+                }).catch((err) => {
+                    res.status(400);
+                    res.json({ err: "Não foi possível encontrar o usuário requisitado" })
+                })
+            } else { 
+                res.status(400);
+                res.json({ err: "Não foi possível confirmar o usuário requerente" })
+            }
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Não foi possível encontrar o usuário requerente" })
+        })
+    },
+
+    bestFriendUpdate(req, res){
+        const resp = req.params.resp;
+
+        switch(resp) {
+            case '4': 
+                    Userbfriend.update({
+                        statusCode: 4
+                    }, {
+                        where: {
+                            [Op.or] : [
+                                {
+                                    idUserOne: req.body.id1,
+                                    idUserTwo: req.body.idr
+                                },
+                                {
+                                    idUserTwo: req.body.id1,
+                                    idUserOne: req.body.idr
+                                }
+                            ]
+                        }
+                    }).then((et) => {
+                        Userfriend.update({
+                            statusCode: 4
+                        }, {
+                            where: {
+                                [Op.or] : [
+                                    {
+                                        idUserOne: req.body.id1,
+                                        idUserTwo: req.body.idr
+                                    },
+                                    {
+                                        idUserTwo: req.body.id1,
+                                        idUserOne: req.body.idr
+                                    }
+                                ]
+                            }
+                        }).then((e) => {
+                            res.status(200);
+                            res.json({ msg: "Requisição de Melhor Amizade Confirmada" })
+                        }).catch((err) => {
+                            res.status(400);
+                            res.json({ err: "Falha em Atualizar a requisição de Amizade" })
+                        })
+                    }).catch((err) => {
+                        res.status(400);
+                        res.json({ err: "Falha em atualizar a requisição de Melhor Amizade" })
+                    })
+                    break;
+            case '2': 
+                    Userbfriend.update({
+                        statusCode: 2
+                    }, {
+                        where: {
+                            [Op.or] : [
+                                {
+                                    idUserOne: req.body.id1,
+                                    idUserTwo: req.body.idr
+                                },
+                                {
+                                    idUserTwo: req.body.id1,
+                                    idUserOne: req.body.idr
+                                }
+                            ]
+                        }
+                    }).then((et) => {
+                        Userfriend.update({
+                            statusCode: 2
+                        }, {
+                            where: {
+                                [Op.or] : [
+                                    {
+                                        idUserOne: req.body.id1,
+                                        idUserTwo: req.body.idr
+                                    },
+                                    {
+                                        idUserTwo: req.body.id1,
+                                        idUserOne: req.body.idr
+                                    }
+                                ]
+                            }
+                        }).then((e) => {
+                            res.status(200);
+                            res.json({ msg: "Melhor Amizade voltou a ser apenas Amizade!" })
+                        }).catch((err) => {
+                            res.status(400);
+                            res.json({ err: "Falha em atualizar a requisição de Amizade" })
+                        })
+                    }).catch((err) => {
+                        res.status(400);
+                        res.json({ err: "Falha em atualizar a requisição de Melhor Amizade" })
+                    })
+                    break;
+            case '8': 
+                    Userbfriend.update({
+                        statusCode: 8
+                    }, {
+                        where: {
+                            [Op.or] : [
+                                {
+                                    idUserOne: req.body.id1,
+                                    idUserTwo: req.body.idr
+                                },
+                                {
+                                    idUserTwo: req.body.id1,
+                                    idUserOne: req.body.idr
+                                }
+                            ]
+                        }
+                    }).then((et) => {
+                        Userfriend.update({
+                            statusCode: 2
+                        }, {
+                            where: {
+                                [Op.or] : [
+                                    {
+                                        idUserOne: req.body.id1,
+                                        idUserTwo: req.body.idr
+                                    },
+                                    {
+                                        idUserTwo: req.body.id1,
+                                        idUserOne: req.body.idr
+                                    }
+                                ]
+                            }
+                        }).then((e) => {
+                            res.status(200);
+                            res.json({ msg: "Perda de Melhor Amizade por falta de Premium Aconteceu!" })
+                        }).catch((err) => {
+                            res.status(400);
+                            res.json({ err: "Falha em atualizar a requisição de Amizade" })
+                        })
+                    }).catch((err) => {
+                        res.status(400);
+                        res.json({ err: "Falha em atualizar a requisição de Melhor Amizadee" })
+                    })
+                    break;
+            default:
+                    res.status(404);
+                    res.json({ err: "Status não autorizado!" })
+        }
+    },
+
+    friendUpdate(req, res) {
         
             const resp = req.params.resp;
 
             switch(resp) {
                 case '1': 
                         Userfriend.update({
-                            statusCode: 1,
+                            statusCode: 1
                         }, {
-                            where: {
+                            [Op.or] : [
+                                {
                                     idUserOne: req.body.id1,
-                                    idUserTwo: req.body.id2
-                            }
+                                    idUserTwo: req.body.idr
+                                },
+                                {
+                                    idUserTwo: req.body.id1,
+                                    idUserOne: req.body.idr
+                                }
+                            ]
                         })
                         res.status(200);
                         res.json({ msg: "Requisição confirmada." })
@@ -416,36 +667,18 @@ module.exports = {
                         Userfriend.update({
                             statusCode: 2
                         }, {
-                            where: {
+                            [Op.or] : [
+                                {
                                     idUserOne: req.body.id1,
-                                    idUserTwo: req.body.id2
-                        }
+                                    idUserTwo: req.body.idr
+                                },
+                                {
+                                    idUserTwo: req.body.id1,
+                                    idUserOne: req.body.idr
+                                }
+                            ]
                         })
                         res.status(200);
-                        res.json({ msg: "Requisição confirmada." })
-                        break;
-                case '3': 
-                        Userfriend.update({
-                            statusCode: 3
-                        }, {
-                            where: {
-                                    idUserOne: req.body.id1,
-                                    idUserTwo: req.body.id2
-                        }
-                        })
-                        res.status.update(200);
-                        res.json({ msg: "Requisição confirmada." })
-                        break;                        
-                case '4':
-                        Userfriend.update({
-                            statusCode: 4
-                        }, {
-                            where: {
-                                    idUserOne: req.body.id1,
-                                    idUserTwo: req.body.id2
-                            }
-                        })
-                        res.status.update(200);
                         res.json({ msg: "Requisição confirmada." })
                         break;
                 case '5':
@@ -453,37 +686,97 @@ module.exports = {
                             statusCode: 5
                             }, {
                                 where: {
-                                        idUserOne: req.body.id1,
-                                        idUserTwo: req.body.id2
+                                    [Op.or] : [
+                                        {
+                                            idUserOne: req.body.id1,
+                                            idUserTwo: req.body.idr
+                                        },
+                                        {
+                                            idUserTwo: req.body.id1,
+                                            idUserOne: req.body.idr
+                                        }
+                                    ]
                                 }
                             })
-                            res.status.update(200);
+                            res.status(200);
                             res.json({ msg: "Requisição confirmada." })
-                            break;  
+                            break;
+                case '6':
+                    Userfriend.update({
+                        statusCode: 6
+                        }, {
+                            [Op.or] : [
+                                {
+                                    idUserOne: req.body.id1,
+                                    idUserTwo: req.body.idr
+                                },
+                                {
+                                    idUserTwo: req.body.id1,
+                                    idUserOne: req.body.idr
+                                }
+                            ]
+                        })
+                        res.status(200);
+                        res.json({ msg: "Requisição confirmada." })
+                        break;                         
                 default: 
                         res.status(404);
-                        res.json({ err: "Status não identificado!" })
+                        res.json({ err: "Status não autorizado!" })
             }
-
-           
-
     },
 
     friendListViewAll(req, res){
 
-        Userfriend.findOne({
+        Userfriend.findAll({
             where: {
-                idUserOne: 1
+                [Op.or]: [
+                    {idUserOne: req.query.id},
+                    {idUserTwo: req.query.id}
+                ]
             },
             include: [
-                {model: Userfriendcode, attributes: ['statusCode', 'name']},
-                {model: User, attributes: ['id', 'username'], 
-            include: [{model: Userdata, attributes: ['nickname', 'avatar', 'level']}]}
-            ]
-        }).then((resp) => {
-            res.json({ resp })
+                {model: Userfriendcode, attributes: ['statusCode', 'name']}
+            ],
+            attributes: ['idRelationShip', 'createdAt', 'idUserOne', 'idUserTwo', 'statusCode']
+        }).then((friendList) => {
+            res.status(200)
+
+            const friendL = friendList.map((status) => {
+                const relat = {
+                    useridrelacao : status.statusCode,
+                    useridRequerente : status.idUserOne,
+                    useridRequerido : status.idUserTwo
+                } 
+                return relat
+            })
+
+            const filtOne = friendList.filter((filo) => {
+                return req.query.id.includes(filo.idUserOne)
+            })
+
+            const filtTwo = friendList.filter((filo) => {
+                return req.query.id.includes(filo.idUserTwo)
+            })
+
+            User.findAll({
+                where: {
+                   [Op.or]: [
+                       {id: filtOne.map(x => x.idUserTwo)},
+                       {id: filtTwo.map(y => y.idUserOne)}
+                   ]
+                },
+                include: [{model: Userdata, attributes: ['avatar', 'level', 'nickname']}],
+                attributes: ['id', 'username']
+            }).then((friendData) => {
+                res.status(200)
+                res.json({ friendData, friendL })
+            }).catch((err) => {
+                res.status(400)
+                res.json({ err: "Falha em conseguir os dados do amigo do usuário!" })
+            })            
         }).catch((err) => {
-            res.json({ err })
+            res.status(400)
+            res.json({ err: err, msg: "Erro ao tentar encontrar os amigos do usuário." })
         })
 
     },
@@ -553,7 +846,7 @@ module.exports = {
 
         User.findOne({ 
             where: {
-                id: req.query.id
+                id: req.params.id
             },
             include: [
                 {model: Userpost, attributes: ['id', 'content', 'createdAt'],
@@ -567,6 +860,7 @@ module.exports = {
             res.json({ resp })
         }).catch((err) => {
             res.status(400);
+            console.log(err)
             res.json({ err: "Não foi possível encontrar os posts deste usuário." })
         })
 

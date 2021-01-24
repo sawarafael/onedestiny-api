@@ -11,9 +11,11 @@ Userroute.get('/normal/dataview/id', auth.Auth, user.dataview);
 Userroute.patch('/normal/datachange/:id', auth.Auth, user.datachange);
 Userroute.patch('/normal/lvlup/id', auth.Auth, user.levelup);
 
-Userroute.post('/normal/friend/request', auth.Auth, user.friendListRequest);
-Userroute.patch('/normal/friend/update/:resp', auth.Auth, user.friendListUpdate);
-Userroute.get('/normal/friend/view/all/id', auth.Auth, user.friendListViewAll);
+Userroute.post('/normal/friend/request', auth.Auth, user.friendRequest);
+Userroute.post('/normal/bestfriend/request', auth.Auth, user.bestFriendRequest);
+Userroute.patch('/normal/bestfriend/update/:resp', auth.Auth, user.bestFriendUpdate);
+Userroute.patch('/normal/friend/update/:resp', auth.Auth, user.friendUpdate);
+Userroute.get('/normal/friend/view/all/', auth.Auth, user.friendListViewAll);
 
 Userroute.post('/normal/user/post/new', auth.Auth, user.userpostNewPost);
 Userroute.post('/normal/user/post/comment/new', auth.Auth, user.userpostNewComment);
