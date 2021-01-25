@@ -15,6 +15,7 @@ Userroute.patch('/normal/lvlup/id', auth.Auth, user.levelup);
 Userroute.post('/normal/friend/request', auth.Auth, user.friendRequest);
 Userroute.post('/normal/bestfriend/request', auth.Auth, user.bestFriendRequest);
 Userroute.patch('/normal/bestfriend/update/:resp', auth.Auth, user.bestFriendUpdate);
+Userroute.get('/normal/bestfriend/view/all/', auth.Auth, user.bfriendViewRequests);
 Userroute.patch('/normal/friend/update/:resp', auth.Auth, user.friendUpdate);
 Userroute.get('/normal/friend/view/all/', auth.Auth, user.friendListViewAll);
 

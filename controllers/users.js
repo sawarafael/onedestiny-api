@@ -676,24 +676,6 @@ module.exports = {
             const resp = req.params.resp;
 
             switch(resp) {
-                case '1': 
-                        Userfriend.update({
-                            statusCode: 1
-                        }, {
-                            [Op.or] : [
-                                {
-                                    idUserOne: req.body.id1,
-                                    idUserTwo: req.body.idr
-                                },
-                                {
-                                    idUserTwo: req.body.id1,
-                                    idUserOne: req.body.idr
-                                }
-                            ]
-                        })
-                        res.status(200);
-                        res.json({ msg: "Requisição confirmada." })
-                        break;
                 case '2': 
                         Userfriend.update({
                             statusCode: 2
@@ -712,9 +694,27 @@ module.exports = {
                         res.status(200);
                         res.json({ msg: "Requisição confirmada." })
                         break;
-                case '5':
+                case '5': 
                         Userfriend.update({
                             statusCode: 5
+                        }, {
+                            [Op.or] : [
+                                {
+                                    idUserOne: req.body.id1,
+                                    idUserTwo: req.body.idr
+                                },
+                                {
+                                    idUserTwo: req.body.id1,
+                                    idUserOne: req.body.idr
+                                }
+                            ]
+                        })
+                        res.status(200);
+                        res.json({ msg: "Requisição confirmada." })
+                        break;
+                case '6':
+                        Userfriend.update({
+                            statusCode: 6
                             }, {
                                 where: {
                                     [Op.or] : [
@@ -732,9 +732,9 @@ module.exports = {
                             res.status(200);
                             res.json({ msg: "Requisição confirmada." })
                             break;
-                case '6':
+                case '7':
                     Userfriend.update({
-                        statusCode: 6
+                        statusCode: 7
                         }, {
                             [Op.or] : [
                                 {
@@ -754,6 +754,38 @@ module.exports = {
                         res.status(404);
                         res.json({ err: "Status não autorizado!" })
             }
+    },
+
+    bfriendViewRequests(req, res) {
+        Userbfriend.findAll({
+            where: {
+                [Op.or]: [
+                    {
+                        idUserOne: req.query.id
+                    },
+                    {
+                        idUserTwo: req.query.id
+                    }
+                ]
+            },
+            include: [
+                {
+                    model: User, attributes: ['id', 'username'],
+                    include: [
+                        {
+                            model: Userdata, attributes: ['avatar', 'level', 'nickname']
+                        }
+                    ]
+                }
+            ],
+            attributes: ['idUserOne', 'idUserTwo', 'statusCode']
+        }).then((bfriendList) => {
+            res.status(200);
+            res.json({ bfriendList })
+        }).catch((err) => {
+            res.status(400);
+            res.json({ err: "Não foi possível encontrar as requisições de melhor amizade" })
+        })
     },
 
     friendListViewAll(req, res){
