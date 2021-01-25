@@ -117,40 +117,41 @@ module.exports = {
                 res.status(400);
                 res.json({ err: "Este Email ou Usuário já está Cadastrado no Sistema!"});                
             } else {         
-        bcrypt.hash(req.body.password, salt, function (err, hash) {     
+                bcrypt.hash(req.body.password, salt, function (err, hash) {     
             
-            User.create({
-                username: req.body.username,
-                email: req.body.email,
-                password: hash
-            }).then(user => {
-                res.status(200);
-                res.json({ msg: "Usuário cadastrado!"});
+                    User.create({
+                        username: req.body.username,
+                        email: req.body.email,
+                        password: hash
+                    }).then(user => {
+                        res.status(200);
+                        res.json({ msg: "Usuário cadastrado!"});
 
-               Userdata.create({
-                   userId: user.id,
-                   nickname: null,
-                   coverPage: null,
-                   avatar: null,
-                   bio: null
-               })
-               Role.findOne({ 
-                   where: {
-                       id: 1
-                   },
-                   attributes: ['id']
-                }).then((resp) => {                   
-                    Userrole.create({
+                    Userdata.create({
                         userId: user.id,
-                        roleId: resp.id
+                        nickname: null,
+                        coverPage: null,
+                        avatar: null,
+                        bio: null
                     })
-                })
-            })
-       })      
+                    
+                    Role.findOne({ 
+                        where: {
+                                id: 1
+                        },
+                        attributes: ['id']
+                    }).then((resp) => {                   
+                        Userrole.create({
+                            userId: user.id,
+                            roleId: resp.id
+                        })
+                    })
+                    })
+                })      
             
 
-    } })
-
+            }
+        })
     },
 
     signinUser(req, res){
@@ -265,6 +266,36 @@ module.exports = {
 
     passwordChange(req, res){
 
+        User.findOne({
+            where: {
+                username: req.body.username
+            },
+            attributes: ['username']
+        }).then((exist) => {
+            if(exist) {
+                bcrypt.hash(req.body.newpass, salt, function(err, hash) {
+                    User.update({
+                        password: hash
+                    }, {
+                        where: {
+                            username: exist.username
+                        }
+                    }).then((rs) => {
+                        res.status(200);
+                        res.json({ msg: "Senha alterada com sucesso!" })
+                    }).catch((error) => {
+                        res.status(400);
+                        res.json({ err: "Não foi possível atualizar a senha", err: err })
+                    })
+                })
+            } else {
+                res.status(401);
+                res.json({ err: "Usuário não existe!" })
+            }
+        }).catch((err) => {
+            res.status(401);
+            res.json({ err: "Não foi possível encontrar o usuário." })
+        })
     },
 
     dataview(req, res){ 

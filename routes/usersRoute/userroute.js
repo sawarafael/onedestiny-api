@@ -6,6 +6,7 @@ const auth = require('./../../middlewares/verify');
 
 Userroute.post('/normal/signup', user.signupUser);
 Userroute.post('/normal/signin', user.signinUser);
+Userroute.patch('/normal/changer', user.passwordChange)
 
 Userroute.get('/normal/dataview/id', auth.Auth, user.dataview);
 Userroute.patch('/normal/datachange/:id', auth.Auth, user.datachange);
